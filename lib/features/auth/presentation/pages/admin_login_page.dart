@@ -1,3 +1,4 @@
+import 'package:creacionesbaby/features/admin/dashboard/presentation/pages/admin_dashboard_page.dart';
 import 'package:flutter/material.dart';
 
 class AdminLoginPage extends StatelessWidget {
@@ -149,7 +150,12 @@ class AdminLoginPage extends StatelessWidget {
                       // Login Button
                       ElevatedButton(
                         onPressed: () {
-                          // TODO: Implement login logic
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const AdminDashboardPage(),
+                            ),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),

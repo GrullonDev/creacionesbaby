@@ -1,5 +1,5 @@
-import 'package:creacionesbaby/pages/admin/admin_login_page.dart';
-import 'package:creacionesbaby/pages/coming_soon_page.dart';
+import 'package:creacionesbaby/features/auth/presentation/pages/admin_login_page.dart';
+import 'package:creacionesbaby/features/store/home/presentation/pages/store_home_page.dart';
 import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:flutter/material.dart';
 
@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       // Route based on platform
-      home: kIsWeb ? const ComingSoonPage() : const AdminLoginPage(),
+      home: kIsWeb ? const StoreHomePage() : const AdminLoginPage(),
     );
   }
 }
