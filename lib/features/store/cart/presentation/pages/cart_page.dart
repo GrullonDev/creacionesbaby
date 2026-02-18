@@ -15,7 +15,10 @@ class CartPage extends StatelessWidget {
             leading: const Icon(Icons.shopping_bag),
             title: Text('Producto en carrito ${index + 1}'),
             subtitle: const Text('Talla: M | Cantidad: 1'),
-            trailing: const Text('\$25.00'),
+            trailing: const Text(
+              'Q125.00',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           );
         },
       ),
@@ -34,8 +37,12 @@ class CartPage extends StatelessWidget {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   Text(
-                    '\$75.00',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    'Q375.00',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.pink,
+                    ),
                   ),
                 ],
               ),

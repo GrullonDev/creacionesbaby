@@ -102,7 +102,7 @@ class _ProductListPageState extends State<ProductListPage> {
               ),
               title: Text('Producto #$index'),
               subtitle: Text(
-                'Stock: ${isActive ? '25' : '0'} | Precio: \$15.00',
+                'Stock: ${isActive ? '25' : '0'} | Precio: Q15.00',
                 style: TextStyle(color: isActive ? Colors.black87 : Colors.red),
               ),
               trailing: PopupMenuButton<String>(

@@ -26,8 +26,12 @@ class ProductDetailPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    '\$45.00',
-                    style: TextStyle(fontSize: 20, color: Colors.green),
+                    'Q225.00',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.pink, // Use distinct color for price
+                    ),
                   ),
                   const SizedBox(height: 16),
                   const Text(

@@ -76,7 +76,7 @@ class DashboardOverview extends StatelessWidget {
                 child: _buildSummaryCard(
                   context,
                   'Ventas Totales',
-                  '150', // Mock data
+                  'Q1,250.00', // Mock data
                   Icons.monetization_on,
                   Colors.green,
                 ),
@@ -174,7 +174,7 @@ class DashboardOverview extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: color.withOpacity(0.1),
+          backgroundColor: color.withValues(alpha: 0.1),
           child: Icon(Icons.circle, color: color, size: 12),
         ),
         title: Text(title),

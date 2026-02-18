@@ -112,7 +112,7 @@ class _AddEditProductPageState extends State<AddEditProductPage> {
                       decimal: true,
                     ),
                     decoration: const InputDecoration(
-                      labelText: 'Precio (\$)',
+                      labelText: 'Precio (Q)',
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.attach_money),
                     ),
@@ -160,7 +160,7 @@ class _AddEditProductPageState extends State<AddEditProductPage> {
                 ),
                 subtitle: const Text('Controla la visibilidad en la tienda'),
                 value: _isActive,
-                activeColor: Colors.green,
+                activeThumbColor: Colors.green,
                 onChanged: (val) {
                   setState(() {
                     _isActive = val;

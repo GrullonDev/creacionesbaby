@@ -49,7 +49,7 @@ class StoreHomePage extends StatelessWidget {
             Container(
               height: 200,
               width: double.infinity,
-              color: Theme.of(context).primaryColor.withOpacity(0.1),
+              color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
               child: const Center(
                 child: Text(
                   'Nueva Colección 2026',
@@ -111,19 +111,26 @@ class StoreHomePage extends StatelessWidget {
                     );
                   },
                   child: Card(
+                    clipBehavior: Clip.antiAlias,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
                           child: Container(
-                            color: Colors.grey[200],
-                            child: const Center(
-                              child: Icon(Icons.image, size: 50),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              image: const DecorationImage(
+                                image: NetworkImage(
+                                  'https://via.placeholder.com/150',
+                                ), // Placeholder
+                                fit: BoxFit.cover,
+                              ),
                             ),
+                            // child: const Center(child: Icon(Icons.image, size: 50, color: Colors.black12)), // Removed for image placeholder
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.all(8.0),
+                          padding: const EdgeInsets.all(12.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -131,11 +138,19 @@ class StoreHomePage extends StatelessWidget {
                                 'Producto ${index + 1}',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
+                                  fontSize: 16,
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              const Text(
-                                '\$25.00',
-                                style: TextStyle(color: Colors.green),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Q195.00', // Mock price
+                                style: TextStyle(
+                                  color: Theme.of(context).primaryColor,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 14,
+                                ),
                               ),
                             ],
                           ),
