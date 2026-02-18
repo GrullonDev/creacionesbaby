@@ -1,4 +1,10 @@
+import 'dart:io';
+import 'package:creacionesbaby/core/models/product_model.dart';
+import 'package:creacionesbaby/core/providers/product_provider.dart';
+import 'package:flutter/foundation.dart'; // For kIsWeb logic
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
 class AddEditProductPage extends StatefulWidget {
   final Map<String, dynamic>? product; // If null, it's adding a new product
@@ -19,7 +25,10 @@ class _AddEditProductPageState extends State<AddEditProductPage> {
   final _stockController = TextEditingController();
 
   // State variables
+  // State variables
   bool _isActive = true;
+  File? _imageFile;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -190,14 +199,7 @@ class _AddEditProductPageState extends State<AddEditProductPage> {
             children: [
               // Add Image Button
               InkWell(
-                onTap: () {
-                  // TODO: Implement Image Picker
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Funcionalidad de subir imagen pendiente'),
-                    ),
-                  );
-                },
+                onTap: _pickImage,
                 child: Container(
                   width: 100,
                   decoration: BoxDecoration(
@@ -215,7 +217,7 @@ class _AddEditProductPageState extends State<AddEditProductPage> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Agregar',
+                        'Cámara',
                         style: TextStyle(color: Colors.grey[700], fontSize: 12),
                       ),
                     ],
@@ -223,10 +225,44 @@ class _AddEditProductPageState extends State<AddEditProductPage> {
                 ),
               ),
               const SizedBox(width: 12),
-              // Placeholder for existing images
-              _buildImagePlaceholder(Colors.orange[100]!),
-              const SizedBox(width: 12),
-              _buildImagePlaceholder(Colors.blue[100]!),
+              // Display Selected Image
+              if (_imageFile != null)
+                Stack(
+                  alignment: Alignment.topRight,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(
+                        _imageFile!,
+                        width: 100,
+                        height: 120,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _imageFile = null;
+                          });
+                        },
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.close,
+                            color: Colors.red,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
             ],
           ),
         ),
@@ -234,43 +270,37 @@ class _AddEditProductPageState extends State<AddEditProductPage> {
     );
   }
 
-  Widget _buildImagePlaceholder(Color color) {
-    return Container(
-      width: 100,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(12),
-        image: const DecorationImage(
-          image: NetworkImage(
-            'https://via.placeholder.com/150',
-          ), // Placeholder for now
-          fit: BoxFit.cover,
-          opacity: 0.6,
-        ),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            right: 4,
-            top: 4,
-            child: CircleAvatar(
-              radius: 12,
-              backgroundColor: Colors.white,
-              child: IconButton(
-                padding: EdgeInsets.zero,
-                icon: const Icon(Icons.close, size: 16, color: Colors.red),
-                onPressed: () {},
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+  Future<void> _pickImage() async {
+    try {
+      final XFile? photo = await _picker.pickImage(source: ImageSource.camera);
+      if (photo != null) {
+        setState(() {
+          _imageFile = File(photo.path);
+        });
+      }
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se pudo acceder a la cámara')),
+      );
+    }
   }
 
   void _saveProduct() {
     if (_formKey.currentState!.validate()) {
-      // TODO: Implement save logic
+      final product = ProductModel(
+        id: DateTime.now().toString(),
+        name: _nameController.text,
+        description: _descController.text,
+        price: double.parse(_priceController.text),
+        stock: int.parse(_stockController.text),
+        imagePath: _imageFile?.path,
+        isLocal: _imageFile != null,
+      );
+
+      // Save to provider (Mock Backend)
+      context.read<ProductProvider>().addProduct(product);
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Producto guardado exitosamente')),
       );

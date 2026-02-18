@@ -3,8 +3,16 @@ import 'package:creacionesbaby/features/store/home/presentation/pages/store_home
 import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:flutter/material.dart';
 
+import 'package:creacionesbaby/core/providers/product_provider.dart';
+import 'package:provider/provider.dart';
+
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [ChangeNotifierProvider(create: (_) => ProductProvider())],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -19,14 +27,15 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         fontFamily: 'Nunito',
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFFF80AB),
-          primary: const Color(0xFFFF80AB),
-          secondary: const Color(0xFF80D8FF),
-          surface: const Color(0xFFFFF5F8),
+          seedColor: const Color(0xFF80CBC4),
+          primary: const Color(0xFF26A69A),
+          secondary: const Color(0xFFF48FB1),
+          tertiary: const Color(0xFF90CAF9),
+          surface: const Color(0xFFFAFAFA),
         ),
-        scaffoldBackgroundColor: const Color(0xFFFFF5F8),
+        scaffoldBackgroundColor: const Color(0xFFFAFAFA),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFFFFF5F8),
+          backgroundColor: Color(0xFFFAFAFA),
           surfaceTintColor: Colors.transparent,
           centerTitle: true,
           elevation: 0,
@@ -43,7 +52,7 @@ class MyApp extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
             side: BorderSide(
-              color: Colors.pink.withValues(alpha: 0.1),
+              color: const Color(0xFF26A69A).withValues(alpha: 0.1),
               width: 1,
             ),
           ),
@@ -51,7 +60,7 @@ class MyApp extends StatelessWidget {
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFFF80AB),
+            backgroundColor: const Color(0xFF26A69A),
             foregroundColor: Colors.white,
             elevation: 0,
             shape: RoundedRectangleBorder(
@@ -69,17 +78,21 @@ class MyApp extends StatelessWidget {
           fillColor: Colors.white,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.pink.withValues(alpha: 0.2)),
+            borderSide: BorderSide(
+              color: const Color(0xFF26A69A).withValues(alpha: 0.2),
+            ),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.pink.withValues(alpha: 0.2)),
+            borderSide: BorderSide(
+              color: const Color(0xFF26A69A).withValues(alpha: 0.2),
+            ),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFFFF80AB), width: 2),
+            borderSide: const BorderSide(color: Color(0xFF26A69A), width: 2),
           ),
-          prefixIconColor: const Color(0xFFFF80AB),
+          prefixIconColor: const Color(0xFF26A69A),
           labelStyle: const TextStyle(color: Color(0xFF757575)),
         ),
       ),
