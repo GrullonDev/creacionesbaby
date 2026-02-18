@@ -75,9 +75,9 @@ class DashboardOverview extends StatelessWidget {
               Expanded(
                 child: _buildSummaryCard(
                   context,
-                  'Ventas hoy',
-                  '\$1,250.00',
-                  Icons.attach_money,
+                  'Ventas Totales',
+                  '150', // Mock data
+                  Icons.monetization_on,
                   Colors.green,
                 ),
               ),
@@ -86,8 +86,8 @@ class DashboardOverview extends StatelessWidget {
                 child: _buildSummaryCard(
                   context,
                   'Pedidos',
-                  '12',
-                  Icons.shopping_cart,
+                  '12', // Mock data
+                  Icons.shopping_bag,
                   Colors.blue,
                 ),
               ),
@@ -99,20 +99,20 @@ class DashboardOverview extends StatelessWidget {
               Expanded(
                 child: _buildSummaryCard(
                   context,
-                  'Productos',
-                  '450',
-                  Icons.inventory,
-                  Colors.orange,
+                  'Prod. Activos',
+                  '420', // Mock data
+                  Icons.check_circle,
+                  Colors.teal,
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: _buildSummaryCard(
                   context,
-                  'Alertas',
-                  '3',
-                  Icons.warning,
-                  Colors.red,
+                  'Prod. Inactivos',
+                  '30', // Mock data (Out of Stock)
+                  Icons.remove_circle,
+                  Colors.redAccent,
                 ),
               ),
             ],
