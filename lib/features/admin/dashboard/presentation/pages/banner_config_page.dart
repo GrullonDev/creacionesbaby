@@ -37,7 +37,14 @@ class _BannerConfigPageState extends State<BannerConfigPage> {
 
   Future<void> _pickImage() async {
     try {
-      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      // Force JPEG and limit size for web compatibility
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+        maxWidth: 1920,
+        maxHeight: 1080,
+      );
+
       if (image != null) {
         final bytes = await image.readAsBytes();
         setState(() {

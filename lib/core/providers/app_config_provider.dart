@@ -83,6 +83,19 @@ class AppConfigProvider extends ChangeNotifier {
               fileOptions: const FileOptions(upsert: false),
             );
       } catch (uploadError) {
+        // Debugging: Check Auth and Buckets
+        final user = _supabase.auth.currentUser;
+        debugPrint('DEBUG: Current User: ${user?.id ?? "Not Logged In"}');
+
+        try {
+          final buckets = await _supabase.storage.listBuckets();
+          debugPrint(
+            'DEBUG: Visible Buckets: ${buckets.map((b) => "${b.id} (public:${b.public})").join(", ")}',
+          );
+        } catch (bucketError) {
+          debugPrint('DEBUG: Failed to list buckets: $bucketError');
+        }
+
         // If 404, suggest creating bucket
         if (uploadError.toString().contains('Bucket not found')) {
           _error =
