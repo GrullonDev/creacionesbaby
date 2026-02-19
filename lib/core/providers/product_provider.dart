@@ -61,9 +61,25 @@ class ProductProvider with ChangeNotifier {
       String? imageUrl;
 
       // Upload image if provided
-      if (imageBytes != null || imagePath != null) {
-        // TODO: Implement Supabase Storage upload
-        // For now, we are skipping the actual upload implementation
+      if (imageBytes != null) {
+        final String fileName =
+            'product_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+        await _supabase.storage
+            .from('products_image')
+            .uploadBinary(
+              fileName,
+              imageBytes,
+              fileOptions: const FileOptions(upsert: false),
+            );
+
+        imageUrl = _supabase.storage
+            .from('products_image')
+            .getPublicUrl(fileName);
+      } else if (imagePath != null && !kIsWeb) {
+        // Fallback for file path on non-web if bytes aren't passed, though bytes are preferred
+        // Not implementing File based upload to keep it clean for web/mobile unified approach.
+        // Ensuring UI always passes bytes is better.
       }
 
       final Map<String, dynamic> productData = {
@@ -82,18 +98,30 @@ class ProductProvider with ChangeNotifier {
 
       final newProduct = ProductModel(
         id: response['id'].toString(),
-        name: response['name'],
-        description: response['description'],
+        name: response['name'] ?? '',
+        description: response['description'] ?? '',
         price: (response['price'] as num).toDouble(),
         stock: (response['stock'] as num).toInt(),
-        imagePath: response['image_url'],
+        imagePath: response['image_url'], // This will now be the Supabase URL
         isLocal: false,
       );
 
       _products.add(newProduct);
+      notifyListeners();
     } catch (e) {
-      _error = 'Error adding product: $e';
+      _isLoading = false;
+      if (e.toString().contains('Bucket not found')) {
+        _error =
+            "ERROR: No existe el bucket 'products_image' en Supabase. Ve a Storage > Create Bucket > 'products_image' (Publico).";
+      } else if (e.toString().contains('statusCode: 403') ||
+          e.toString().contains('Unauthorized')) {
+        _error =
+            "ERROR DE PERMISOS (RLS): No tienes permiso para subir imágenes. Verifica las 'Policies' en Supabase del bucket 'products_image' para permitir INSERT a 'authenticated'.";
+      } else {
+        _error = 'Error adding product: $e';
+      }
       debugPrint(_error);
+      notifyListeners();
       rethrow;
     } finally {
       _isLoading = false;

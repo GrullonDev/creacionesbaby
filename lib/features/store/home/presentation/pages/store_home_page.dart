@@ -4,8 +4,22 @@ import 'package:creacionesbaby/features/store/catalog/presentation/pages/product
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class StoreHomePage extends StatelessWidget {
+class StoreHomePage extends StatefulWidget {
   const StoreHomePage({super.key});
+
+  @override
+  State<StoreHomePage> createState() => _StoreHomePageState();
+}
+
+class _StoreHomePageState extends State<StoreHomePage> {
+  @override
+  void initState() {
+    super.initState();
+    // Load products when page opens
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ProductProvider>().loadProducts();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -113,7 +127,28 @@ class StoreHomePage extends StatelessWidget {
             ),
             Consumer<ProductProvider>(
               builder: (context, provider, child) {
-                final products = provider.products;
+                if (provider.isLoading) {
+                  return const SizedBox(
+                    height: 200,
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+
+                final products = provider.products
+                    .where((p) => p.stock > 0)
+                    .toList(); // Only show in-stock items
+
+                if (products.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.all(32.0),
+                    child: Center(
+                      child: Text(
+                        'No hay productos disponibles por el momento.',
+                      ),
+                    ),
+                  );
+                }
+
                 return GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -132,7 +167,8 @@ class StoreHomePage extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const ProductDetailPage(),
+                            builder: (context) =>
+                                ProductDetailPage(product: product),
                           ),
                         );
                       },
@@ -145,43 +181,46 @@ class StoreHomePage extends StatelessWidget {
                               child: Container(
                                 decoration: BoxDecoration(
                                   color: Colors.grey[100],
-                                  image: !product.isLocal
-                                      ? const DecorationImage(
-                                          image: NetworkImage(
-                                            'https://via.placeholder.com/150',
-                                          ),
-                                          fit: BoxFit.cover,
-                                        )
-                                      : null,
                                 ),
-                                child: product.isLocal
-                                    ? Center(
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.access_time_filled,
-                                              size: 40,
-                                              color: Theme.of(context)
-                                                  .primaryColor
-                                                  .withValues(alpha: 0.5),
+                                child: product.imagePath != null
+                                    ? Image.network(
+                                        product.imagePath!,
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                              return const Center(
+                                                child: Icon(
+                                                  Icons.broken_image,
+                                                  color: Colors.grey,
+                                                ),
+                                              );
+                                            },
+                                        loadingBuilder: (context, child, loadingProgress) {
+                                          if (loadingProgress == null)
+                                            return child;
+                                          return Center(
+                                            child: CircularProgressIndicator(
+                                              value:
+                                                  loadingProgress
+                                                          .expectedTotalBytes !=
+                                                      null
+                                                  ? loadingProgress
+                                                            .cumulativeBytesLoaded /
+                                                        loadingProgress
+                                                            .expectedTotalBytes!
+                                                  : null,
                                             ),
-                                            const SizedBox(height: 8),
-                                            Text(
-                                              'Próximamente',
-                                              style: TextStyle(
-                                                color: Theme.of(
-                                                  context,
-                                                ).primaryColor,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                          );
+                                        },
                                       )
-                                    : null,
+                                    : const Center(
+                                        child: Icon(
+                                          Icons.shopping_bag,
+                                          size: 40,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
                               ),
                             ),
                             Padding(
@@ -207,27 +246,6 @@ class StoreHomePage extends StatelessWidget {
                                       fontSize: 14,
                                     ),
                                   ),
-                                  if (product.isLocal) ...[
-                                    const SizedBox(height: 4),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.green[100],
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: const Text(
-                                        'NUEVO',
-                                        style: TextStyle(
-                                          color: Colors.green,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
                                 ],
                               ),
                             ),

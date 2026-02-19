@@ -1,9 +1,7 @@
-import 'package:creacionesbaby/core/providers/product_provider.dart';
 import 'package:creacionesbaby/features/auth/presentation/pages/admin_login_page.dart';
 import 'package:creacionesbaby/features/store/home/presentation/pages/store_home_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -87,30 +85,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       // Route based on platform
-      home: kIsWeb ? const StoreHomePageWrapper() : const AdminLoginPage(),
+      home: kIsWeb ? const StoreHomePage() : const AdminLoginPage(),
     );
-  }
-}
-
-class StoreHomePageWrapper extends StatefulWidget {
-  const StoreHomePageWrapper({super.key});
-
-  @override
-  State<StoreHomePageWrapper> createState() => _StoreHomePageWrapperState();
-}
-
-class _StoreHomePageWrapperState extends State<StoreHomePageWrapper> {
-  @override
-  void initState() {
-    super.initState();
-    // Fetch products when the app starts (for the store)
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProductProvider>().loadProducts();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return const StoreHomePage();
   }
 }
