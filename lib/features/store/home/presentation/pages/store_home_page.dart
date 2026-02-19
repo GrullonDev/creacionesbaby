@@ -1,3 +1,4 @@
+import 'package:creacionesbaby/core/providers/app_config_provider.dart';
 import 'package:creacionesbaby/core/providers/cart_provider.dart';
 import 'package:creacionesbaby/core/providers/product_provider.dart';
 import 'package:creacionesbaby/features/store/cart/presentation/pages/cart_page.dart';
@@ -19,6 +20,8 @@ class _StoreHomePageState extends State<StoreHomePage> {
     // Load products when page opens
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProductProvider>().loadProducts();
+      // Ensure config is loaded if not already (or refresh)
+      context.read<AppConfigProvider>().loadConfig();
     });
   }
 
@@ -73,16 +76,69 @@ class _StoreHomePageState extends State<StoreHomePage> {
         child: Column(
           children: [
             // Hero Banner
-            Container(
-              height: 200,
-              width: double.infinity,
-              color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-              child: const Center(
-                child: Text(
-                  'Nueva Colección 2026',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-              ),
+            // Hero Banner
+            Consumer<AppConfigProvider>(
+              builder: (context, config, child) {
+                if (config.isLoading) {
+                  return Container(
+                    height: 200,
+                    width: double.infinity,
+                    color: Colors.grey[200],
+                    child: const Center(child: CircularProgressIndicator()),
+                  );
+                }
+                return Container(
+                  height: 200,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).primaryColor.withValues(alpha: 0.1),
+                    image: config.bannerImageUrl != null
+                        ? DecorationImage(
+                            image: NetworkImage(config.bannerImageUrl!),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
+                  child: Container(
+                    // Overlay for better text readability if image exists
+                    decoration: config.bannerImageUrl != null
+                        ? BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.black.withValues(alpha: 0.2),
+                                Colors.black.withValues(alpha: 0.5),
+                              ],
+                            ),
+                          )
+                        : null,
+                    child: Center(
+                      child: Text(
+                        config.bannerText,
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: config.bannerImageUrl != null
+                              ? Colors.white
+                              : Colors.black,
+                          shadows: config.bannerImageUrl != null
+                              ? [
+                                  const Shadow(
+                                    color: Colors.black,
+                                    blurRadius: 4,
+                                  ),
+                                ]
+                              : null,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 24),
 

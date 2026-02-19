@@ -1,6 +1,5 @@
 import 'package:creacionesbaby/core/providers/auth_provider.dart';
 import 'package:creacionesbaby/features/admin/dashboard/presentation/pages/admin_dashboard_page.dart';
-import 'package:creacionesbaby/utils/admin_create_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -36,8 +35,9 @@ class AdminLoginPage extends StatelessWidget {
                 const SizedBox(height: 24),
                 const Text(
                   'Versión 1.0.0',
-                  style: TextStyle(color: Colors.white60, fontSize: 12),
+                  style: TextStyle(color: Colors.black45, fontSize: 12),
                 ),
+                /*
                 TextButton(
                   onPressed: () {
                     showDialog(
@@ -50,6 +50,7 @@ class AdminLoginPage extends StatelessWidget {
                     style: TextStyle(color: Colors.white30),
                   ),
                 ),
+                */
               ],
             ),
           ),

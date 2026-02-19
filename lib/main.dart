@@ -1,4 +1,5 @@
 import 'package:creacionesbaby/config/env.dart';
+import 'package:creacionesbaby/core/providers/app_config_provider.dart';
 import 'package:creacionesbaby/core/providers/auth_provider.dart';
 import 'package:creacionesbaby/core/providers/cart_provider.dart';
 import 'package:creacionesbaby/core/providers/product_provider.dart';
@@ -16,6 +17,9 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(
+          create: (_) => AppConfigProvider()..loadConfig(),
+        ),
         ChangeNotifierProvider(create: (_) => ProductProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => CartProvider()),

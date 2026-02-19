@@ -1,3 +1,4 @@
+import 'package:creacionesbaby/features/admin/dashboard/presentation/pages/banner_config_page.dart';
 import 'package:creacionesbaby/features/admin/orders/presentation/pages/order_list_page.dart';
 import 'package:creacionesbaby/features/admin/products/presentation/pages/product_list_page.dart';
 import 'package:flutter/material.dart';
@@ -60,6 +61,18 @@ class DashboardOverview extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Dashboard'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Configurar Banner',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const BannerConfigPage(),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
             onPressed: () {},
