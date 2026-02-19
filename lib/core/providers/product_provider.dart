@@ -1,31 +1,122 @@
 import 'package:creacionesbaby/core/models/product_model.dart';
 import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProductProvider with ChangeNotifier {
-  final List<ProductModel> _products = [
-    // Mock Data to simulate existing products
-    ProductModel(
-      id: '1',
-      name: 'Vestido Rosa Pastel',
-      description: 'Hermoso vestido para niña, talla 3-6 Meses.',
-      price: 150.0,
-      stock: 5,
-      isLocal: false, // Simulated "server" data
-    ),
-    ProductModel(
-      id: '2',
-      name: 'Conjunto Azul Cielo',
-      description: 'Conjunto cómodo de algodón para niño.',
-      price: 120.0,
-      stock: 8,
-      isLocal: false,
-    ),
-  ];
+  final SupabaseClient _supabase = Supabase.instance.client;
+
+  List<ProductModel> _products = [];
+  bool _isLoading = false;
+  String? _error;
 
   List<ProductModel> get products => _products;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
 
-  void addProduct(ProductModel product) {
-    _products.add(product);
+  // Initialize and load products
+  Future<void> loadProducts() async {
+    _isLoading = true;
+    _error = null;
     notifyListeners();
+
+    try {
+      final response = await _supabase
+          .from('products')
+          .select()
+          .order('created_at');
+
+      final List<dynamic> data = response;
+      _products = data
+          .map(
+            (json) => ProductModel(
+              id: json['id'].toString(),
+              name: json['name'] ?? '',
+              description: json['description'] ?? '',
+              price: (json['price'] as num).toDouble(),
+              stock: (json['stock'] as num).toInt(),
+              imagePath: json['image_url'],
+              isLocal: false,
+            ),
+          )
+          .toList();
+    } catch (e) {
+      _error = 'Error loading products: $e';
+      debugPrint(_error);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Create Product
+  Future<void> addProduct(
+    ProductModel product, {
+    Uint8List? imageBytes,
+    String? imagePath,
+  }) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      String? imageUrl;
+
+      // Upload image if provided
+      if (imageBytes != null || imagePath != null) {
+        // TODO: Implement Supabase Storage upload
+        // For now, we are skipping the actual upload implementation
+      }
+
+      final Map<String, dynamic> productData = {
+        'name': product.name,
+        'description': product.description,
+        'price': product.price,
+        'stock': product.stock,
+        'image_url': imageUrl,
+      };
+
+      final response = await _supabase
+          .from('products')
+          .insert(productData)
+          .select()
+          .single();
+
+      final newProduct = ProductModel(
+        id: response['id'].toString(),
+        name: response['name'],
+        description: response['description'],
+        price: (response['price'] as num).toDouble(),
+        stock: (response['stock'] as num).toInt(),
+        imagePath: response['image_url'],
+        isLocal: false,
+      );
+
+      _products.add(newProduct);
+    } catch (e) {
+      _error = 'Error adding product: $e';
+      debugPrint(_error);
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Delete Product (Soft Delete or Hard Delete)
+  Future<void> deleteProduct(String id) async {
+    try {
+      await _supabase.from('products').delete().eq('id', id);
+      _products.removeWhere((p) => p.id == id);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error deleting product: $e');
+      rethrow;
+    }
+  }
+
+  // Toggle Active Status (Update Stock to 0 or specific 'active' flag if db has it)
+  Future<void> toggleProductStatus(String id, bool isActive) async {
+    // Implementation depends on DB schema.
+    // If 'active' column exists:
+    // await _supabase.from('products').update({'active': isActive}).eq('id', id);
   }
 }
