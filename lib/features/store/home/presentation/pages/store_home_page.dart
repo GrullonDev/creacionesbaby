@@ -1,7 +1,9 @@
 import 'package:creacionesbaby/core/providers/app_config_provider.dart';
 import 'package:creacionesbaby/core/providers/cart_provider.dart';
 import 'package:creacionesbaby/core/providers/product_provider.dart';
-import 'package:creacionesbaby/features/store/cart/presentation/pages/cart_page.dart';
+import 'dart:async';
+import 'package:creacionesbaby/features/store/catalog/presentation/pages/catalog_page.dart';
+import 'package:creacionesbaby/features/store/cart/presentation/pages/mini_cart.dart';
 import 'package:creacionesbaby/features/store/catalog/presentation/pages/product_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -14,9 +16,38 @@ class StoreHomePage extends StatefulWidget {
 }
 
 class _StoreHomePageState extends State<StoreHomePage> {
+  int _currentHeroPage = 0;
+  late PageController _pageController;
+  Timer? _carouselTimer;
+
+  final List<String> _heroImages = [
+    'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=2000&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=2000&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?q=80&w=2000&auto=format&fit=crop',
+  ];
+
   @override
   void initState() {
     super.initState();
+    _pageController = PageController();
+
+    // Auto-advance carousel
+    _carouselTimer = Timer.periodic(const Duration(seconds: 5), (Timer timer) {
+      if (_currentHeroPage < _heroImages.length - 1) {
+        _currentHeroPage++;
+      } else {
+        _currentHeroPage = 0;
+      }
+
+      if (_pageController.hasClients) {
+        _pageController.animateToPage(
+          _currentHeroPage,
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProductProvider>().loadProducts();
       context.read<AppConfigProvider>().loadConfig();
@@ -24,8 +55,16 @@ class _StoreHomePageState extends State<StoreHomePage> {
   }
 
   @override
+  void dispose() {
+    _carouselTimer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      endDrawer: const MiniCart(),
       appBar: _buildAppBar(context),
       body: SingleChildScrollView(
         child: Column(
@@ -77,9 +116,14 @@ class _StoreHomePageState extends State<StoreHomePage> {
       actions: [
         if (MediaQuery.of(context).size.width > 800) ...[
           TextButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CatalogPage()),
+              );
+            },
             child: const Text(
-              'Shop All',
+              'Catálogo',
               style: TextStyle(color: Colors.black87),
             ),
           ),
@@ -102,10 +146,7 @@ class _StoreHomePageState extends State<StoreHomePage> {
               backgroundColor: Theme.of(context).primaryColor,
               child: IconButton(
                 icon: const Icon(Icons.shopping_cart_outlined),
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const CartPage()),
-                ),
+                onPressed: () => Scaffold.of(context).openEndDrawer(),
               ),
             );
           },
@@ -118,171 +159,145 @@ class _StoreHomePageState extends State<StoreHomePage> {
   Widget _buildHeroSection(BuildContext context) {
     return Consumer<AppConfigProvider>(
       builder: (context, config, _) {
-        if (config.isLoading)
-          return const SizedBox(
-            height: 400,
-            child: Center(child: CircularProgressIndicator()),
-          );
-
-        final hasImage = config.bannerImageUrl != null;
-        final isMobile = MediaQuery.of(context).size.width < 800;
-
-        // Content Widget
-        Widget textContent = Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.blue[50],
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                'PEDIATRICIAN APPROVED ESSENTIALS',
-                style: TextStyle(
-                  color: Theme.of(context).primaryColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              config.bannerText,
-              style: Theme.of(
-                context,
-              ).textTheme.displayLarge?.copyWith(fontSize: isMobile ? 32 : 48),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Premium, safety-tested essentials designed for your little one\'s comfort and development. Sustainably sourced.',
-              style: TextStyle(fontSize: 16, color: Colors.black54),
-            ),
-            const SizedBox(height: 32),
-            Wrap(
-              runSpacing: 12,
-              children: [
-                ElevatedButton(
-                  onPressed: () {},
-                  child: const Text('Shop Collections'),
-                ),
-                const SizedBox(width: 16),
-                OutlinedButton(
-                  onPressed: () {},
-                  child: const Text('Safety Standards'),
-                ),
-              ],
-            ),
-          ],
-        );
-
-        if (isMobile) {
-          // Mobile Layout (Stacked)
-          return Container(
-            color: const Color(0xFFFFF6ED),
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              children: [
-                if (hasImage)
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Image.network(
-                      config.bannerImageUrl!,
-                      height: 300,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          height: 300,
-                          width: double.infinity,
-                          color: Colors.white,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.broken_image,
-                                size: 50,
-                                color: Colors.blue[100],
-                              ),
-                              const SizedBox(height: 8),
-                              const Text(
-                                'Imagen no disponible',
-                                style: TextStyle(color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                const SizedBox(height: 24),
-                textContent,
-              ],
-            ),
-          );
+        // If config has a specific banner, use it as the first image
+        final displayImages = [..._heroImages];
+        if (config.bannerImageUrl != null) {
+          displayImages.insert(0, config.bannerImageUrl!);
         }
 
-        // Desktop Layout (Side by Side)
-        return Container(
+        return SizedBox(
+          height: 600, // Taller, more cinematic
           width: double.infinity,
-          color: const Color(0xFFFFF6ED),
-          padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 24),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1200),
-              child: Row(
-                children: [
-                  Expanded(flex: 1, child: textContent),
-                  const SizedBox(width: 48),
-                  Expanded(
-                    flex: 1,
-                    child: hasImage
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(24),
-                            child: Image.network(
-                              config.bannerImageUrl!,
-                              fit: BoxFit.cover,
-                              height: 400,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  height: 400,
-                                  width: double.infinity,
-                                  color: Colors.white,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.broken_image,
-                                        size: 50,
-                                        color: Colors.blue[100],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      const Text(
-                                        'Imagen no disponible',
-                                        style: TextStyle(color: Colors.grey),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-                          )
-                        : Container(
-                            height: 400,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            child: Icon(
-                              Icons.family_restroom,
-                              size: 100,
-                              color: Colors.blue[100],
-                            ),
-                          ),
-                  ),
-                ],
+          child: Stack(
+            children: [
+              // Carousel
+              PageView.builder(
+                controller: _pageController,
+                itemCount: displayImages.length,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentHeroPage = index;
+                  });
+                },
+                itemBuilder: (context, index) {
+                  return Image.network(
+                    displayImages[index],
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(color: Colors.grey[200]);
+                    },
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                              : null,
+                          color: Colors.white,
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
-            ),
+
+              // Overlay Gradient for text readability
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.2),
+                      Colors.black.withValues(alpha: 0.5),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Content
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Seguridad en la que confías,\ncomodidad que ellos aman',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 48,
+                          fontWeight: FontWeight.bold,
+                          height: 1.1,
+                          shadows: [
+                            Shadow(
+                              blurRadius: 10.0,
+                              color: Colors.black45,
+                              offset: Offset(2.0, 2.0),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'Esenciales premium diseñados para el desarrollo de tu bebé.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      ElevatedButton(
+                        onPressed: () {},
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 20,
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        child: const Text('VER COLECCIÓN'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Indicators
+              Positioned(
+                bottom: 30,
+                left: 0,
+                right: 0,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(displayImages.length, (index) {
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      width: _currentHeroPage == index ? 24 : 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: _currentHeroPage == index
+                            ? Colors.white
+                            : Colors.white.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -291,33 +306,36 @@ class _StoreHomePageState extends State<StoreHomePage> {
 
   Widget _buildFeaturesBar(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
-      color: Colors.white,
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Colors.grey[100]!)),
+      ),
       child: Center(
         child: Wrap(
-          spacing: 40,
+          spacing: 60,
           runSpacing: 20,
           alignment: WrapAlignment.center,
           children: [
             _featureItem(
-              Icons.verified_user_outlined,
-              'Certified Safety',
-              'Exceeds global standards',
+              Icons.local_shipping_outlined,
+              'Envío Gratis',
+              'En todas las órdenes',
+            ),
+            _featureItem(
+              Icons.medical_services_outlined,
+              'Certificación Médica',
+              'Aprobado por pediatras',
+            ),
+            _featureItem(
+              Icons.assignment_return_outlined,
+              'Devoluciones Fáciles',
+              '30 días de garantía',
             ),
             _featureItem(
               Icons.eco_outlined,
-              'BPA Free',
-              '100% Non-toxic materials',
-            ),
-            _featureItem(
-              Icons.recycling_outlined,
-              'Eco-Friendly',
-              'Sustainably sourced',
-            ),
-            _featureItem(
-              Icons.local_shipping_outlined,
-              'Free Delivery',
-              'Orders over Q250',
+              'Materiales Orgánicos',
+              '100% Algodón sostenible',
             ),
           ],
         ),
@@ -349,41 +367,39 @@ class _StoreHomePageState extends State<StoreHomePage> {
   }
 
   Widget _buildGrowthStages(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 800;
-
     return Column(
       children: [
         const Text(
-          'Shop by Growth Stage',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          'Compra por Etapa',
+          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         const Text(
-          'Tailored products for every milestone',
-          style: TextStyle(color: Colors.grey),
+          'Productos adaptados para cada momento especial',
+          style: TextStyle(color: Colors.grey, fontSize: 16),
         ),
-        const SizedBox(height: 32),
+        const SizedBox(height: 48),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Row(
             children: [
               _stageCard(
-                'Newborn',
-                '0-6 Months',
-                'https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&q=80&w=400',
+                'Recién Nacido',
+                '0-6 Meses',
+                'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=600&auto=format&fit=crop', // Minimalist
               ),
               const SizedBox(width: 24),
               _stageCard(
-                'Infant',
-                '6-18 Months',
-                'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&q=80&w=400',
+                'Infante',
+                '6-18 Meses',
+                'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?q=80&w=600&auto=format&fit=crop', // Minimalist
               ),
               const SizedBox(width: 24),
               _stageCard(
-                'Toddlers',
-                '18-36 Months',
-                'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&q=80&w=400',
+                'Niño Pequeño',
+                '18-36 Meses',
+                'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?q=80&w=600&auto=format&fit=crop', // Minimalist
               ),
             ],
           ),
@@ -479,11 +495,13 @@ class _StoreHomePageState extends State<StoreHomePage> {
           height: 350,
           child: Consumer<ProductProvider>(
             builder: (context, provider, _) {
-              if (provider.isLoading)
+              if (provider.isLoading) {
                 return const Center(child: CircularProgressIndicator());
+              }
               final products = provider.products.take(5).toList();
-              if (products.isEmpty)
+              if (products.isEmpty) {
                 return const Center(child: Text('Coming soon'));
+              }
 
               return ListView.separated(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
