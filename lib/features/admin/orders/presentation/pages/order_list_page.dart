@@ -1,7 +1,22 @@
+import 'package:creacionesbaby/core/providers/order_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class OrderListPage extends StatelessWidget {
+class OrderListPage extends StatefulWidget {
   const OrderListPage({super.key});
+
+  @override
+  State<OrderListPage> createState() => _OrderListPageState();
+}
+
+class _OrderListPageState extends State<OrderListPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<OrderProvider>().fetchOrders();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -9,41 +24,147 @@ class OrderListPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Gestión de Pedidos'),
         actions: [
-          IconButton(icon: const Icon(Icons.filter_list), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              context.read<OrderProvider>().fetchOrders();
+            },
+          ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: 8,
-        padding: const EdgeInsets.all(8),
-        itemBuilder: (context, index) {
-          final status = index % 3 == 0
-              ? 'Pendiente'
-              : (index % 3 == 1 ? 'Enviado' : 'Entregado');
-          final color = index % 3 == 0
-              ? Colors.orange
-              : (index % 3 == 1 ? Colors.blue : Colors.green);
+      body: Consumer<OrderProvider>(
+        builder: (context, orderProvider, child) {
+          if (orderProvider.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-          return Card(
-            margin: const EdgeInsets.symmetric(vertical: 4),
-            child: ListTile(
-              title: Text('Pedido #102$index'),
-              subtitle: Text(
-                'Cliente: Juan Pérez\nFecha: ${DateTime.now().subtract(Duration(days: index)).toString().split(' ')[0]}',
+          if (orderProvider.error != null) {
+            return Center(
+              child: Text(
+                'Error: ${orderProvider.error}',
+                style: const TextStyle(color: Colors.red),
               ),
-              trailing: Chip(
-                label: Text(
-                  status,
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
+            );
+          }
+
+          if (orderProvider.orders.isEmpty) {
+            return const Center(child: Text('No hay pedidos realizados aún.'));
+          }
+
+          return ListView.builder(
+            itemCount: orderProvider.orders.length,
+            padding: const EdgeInsets.all(8),
+            itemBuilder: (context, index) {
+              final order = orderProvider.orders[index];
+
+              Color statusColor;
+              switch (order.status.toLowerCase()) {
+                case 'enviado':
+                  statusColor = Colors.blue;
+                  break;
+                case 'entregado':
+                  statusColor = Colors.green;
+                  break;
+                case 'cancelado':
+                  statusColor = Colors.red;
+                  break;
+                case 'pendiente':
+                default:
+                  statusColor = Colors.orange;
+              }
+
+              final dateStr = order.createdAt != null
+                  ? '${order.createdAt!.day}/${order.createdAt!.month}/${order.createdAt!.year}'
+                  : 'Fecha desconocida';
+
+              return Card(
+                margin: const EdgeInsets.symmetric(vertical: 4),
+                child: ListTile(
+                  title: Text('Pedido #${order.id?.substring(0, 8)}'),
+                  subtitle: Text(
+                    'Cliente: ${order.customerName}\n'
+                    'Total: Q${order.totalAmount.toStringAsFixed(2)} - $dateStr',
+                  ),
+                  trailing: Chip(
+                    label: Text(
+                      order.status.toUpperCase(),
+                      style: const TextStyle(color: Colors.white, fontSize: 10),
+                    ),
+                    backgroundColor: statusColor,
+                  ),
+                  onTap: () {
+                    // TODO: Navigate to Order Detail
+                    _showOrderDetails(context, order, orderProvider);
+                  },
                 ),
-                backgroundColor: color,
-              ),
-              onTap: () {
-                // TODO: Navigate to Order Detail
-              },
-            ),
+              );
+            },
           );
         },
       ),
+    );
+  }
+
+  void _showOrderDetails(BuildContext context, order, OrderProvider provider) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Detalle de Pedido #${order.id?.substring(0, 8)}'),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Cliente: ${order.customerName}'),
+                Text('Email: ${order.customerEmail}'),
+                Text('Teléfono: ${order.customerPhone}'),
+                Text('Dirección: ${order.shippingAddress}'),
+                const Divider(),
+                const Text(
+                  'Productos:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                ...order.items
+                    .map<Widget>(
+                      (item) => Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: Text(
+                          '- ${item.quantity}x ${item.productName} (Talla: ${item.size}) - Q${item.totalPrice}',
+                        ),
+                      ),
+                    )
+                    .toList(),
+                const Divider(),
+                Text(
+                  'Total: Q${order.totalAmount}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                provider.updateOrderStatus(order.id!, 'enviado');
+                Navigator.pop(context);
+              },
+              child: const Text('Marcar Enviado'),
+            ),
+            TextButton(
+              onPressed: () {
+                provider.updateOrderStatus(order.id!, 'entregado');
+                Navigator.pop(context);
+              },
+              child: const Text('Marcar Entregado'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cerrar'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

@@ -13,6 +13,7 @@ class Env {
   static Future<void> load() async {
     // If needed, load specific multiple .env files
     // Usually, we just load '.env'
+    // ignore: avoid_print
     print('📦 Environment loaded: ${_dotenv['ENVIRONMENT'] ?? 'development'}');
   }
 }

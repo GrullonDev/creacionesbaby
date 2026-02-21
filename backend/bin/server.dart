@@ -17,8 +17,10 @@ void main(List<String> args) async {
   SupabaseClient? supabase;
   if (supabaseUrl.isNotEmpty && supabaseKey.isNotEmpty) {
     supabase = SupabaseClient(supabaseUrl, supabaseKey);
+    // ignore: avoid_print
     print('✅ Supabase initialized for: $supabaseUrl');
   } else {
+    // ignore: avoid_print
     print('⚠️ Supabase credentials missing in .env');
   }
 
@@ -62,5 +64,6 @@ void main(List<String> args) async {
   final port = int.parse(Platform.environment['PORT'] ?? '8080');
 
   final server = await serve(handler, ip, port);
+  // ignore: avoid_print
   print('Server listening on port ${server.port}');
 }

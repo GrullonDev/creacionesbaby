@@ -21,7 +21,6 @@ class AppTheme {
         primary: primaryBlue,
         secondary: secondaryDarkBlue,
         surface: surfaceWhite,
-        background: surfaceWhite,
       ),
       textTheme: GoogleFonts.outfitTextTheme().copyWith(
         displayLarge: GoogleFonts.outfit(

@@ -22,7 +22,7 @@ class CartProvider with ChangeNotifier {
   }
 
   // Add Item
-  void addItem(
+  bool addItem(
     ProductModel product, {
     int quantity = 1,
     String size = 'Única',
@@ -33,8 +33,11 @@ class CartProvider with ChangeNotifier {
     );
 
     if (existingIndex >= 0) {
-      // If exists, update quantity
+      // If exists, check stock against total new quantity
       final existingItem = _items[existingIndex];
+      if (existingItem.quantity + quantity > product.stock) {
+        return false;
+      }
       _items[existingIndex] = CartItemModel(
         id: existingItem.id, // Keep original ID
         product: existingItem.product,
@@ -43,12 +46,17 @@ class CartProvider with ChangeNotifier {
         addedAt: existingItem.addedAt,
       );
     } else {
+      // If new, check stock against new quantity
+      if (quantity > product.stock) {
+        return false;
+      }
       // If new, add to list
       _items.add(
         CartItemModel(product: product, quantity: quantity, size: size),
       );
     }
     notifyListeners();
+    return true;
   }
 
   // Remove Item
@@ -60,13 +68,16 @@ class CartProvider with ChangeNotifier {
   }
 
   // Update Quantity
-  void updateQuantity(String cartItemId, int newQuantity) {
+  bool updateQuantity(String cartItemId, int newQuantity) {
     final index = _items.indexWhere((item) => item.id == cartItemId);
     if (index >= 0) {
       if (newQuantity <= 0) {
         _items.removeAt(index);
       } else {
         final existingItem = _items[index];
+        if (newQuantity > existingItem.product.stock) {
+          return false;
+        }
         _items[index] = CartItemModel(
           id: existingItem.id,
           product: existingItem.product,
@@ -76,7 +87,9 @@ class CartProvider with ChangeNotifier {
         );
       }
       notifyListeners();
+      return true;
     }
+    return false;
   }
 
   // Clear Cart

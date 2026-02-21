@@ -251,9 +251,11 @@ class _ProductListPageState extends State<ProductListPage> {
             onPressed: () {
               Navigator.pop(ctx);
               provider.deleteProduct(product.id).catchError((e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error al eliminar: $e')),
-                );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error al eliminar: $e')),
+                  );
+                }
               });
             },
             child: const Text('Eliminar', style: TextStyle(color: Colors.red)),

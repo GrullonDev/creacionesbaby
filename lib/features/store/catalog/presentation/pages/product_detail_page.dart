@@ -60,7 +60,21 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   final List<String> _designs = ['Liso', 'Estampado'];
 
   void _addToCart() {
-    context.read<CartProvider>().addItem(widget.product, size: _selectedSize);
+    final cartProvider = context.read<CartProvider>();
+    final success = cartProvider.addItem(
+      widget.product,
+      size: _selectedSize,
+      quantity: _quantity,
+    );
+    if (!success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No hay suficiente stock para este producto'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
     _scaffoldKey.currentState?.openEndDrawer(); // Open Mini Cart Drawer safely
   }
 
