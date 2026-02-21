@@ -16,16 +16,16 @@ class ComingSoonPage extends StatelessWidget {
               Text(
                 'Creaciones Baby',
                 style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      color: Colors.pinkAccent,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  color: Colors.pinkAccent,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 20),
               Text(
                 'Proximamente...',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: Colors.grey[700],
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.headlineMedium?.copyWith(color: Colors.grey[700]),
               ),
               const SizedBox(height: 40),
               // Placeholder Image
@@ -37,7 +37,7 @@ class ComingSoonPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -49,7 +49,10 @@ class ComingSoonPage extends StatelessWidget {
                     children: [
                       Icon(Icons.image, size: 80, color: Colors.grey),
                       SizedBox(height: 10),
-                      Text('Imagen Promocional', style: TextStyle(color: Colors.grey)),
+                      Text(
+                        'Imagen Promocional',
+                        style: TextStyle(color: Colors.grey),
+                      ),
                     ],
                   ),
                 ),

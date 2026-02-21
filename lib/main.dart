@@ -1,26 +1,33 @@
-import 'package:creacionesbaby/pages/admin/admin_login_page.dart';
-import 'package:creacionesbaby/pages/coming_soon_page.dart';
-import 'package:flutter/foundation.dart'; // For kIsWeb
+import 'package:creacionesbaby/config/env.dart';
+import 'package:creacionesbaby/core/providers/app_config_provider.dart';
+import 'package:creacionesbaby/core/providers/auth_provider.dart';
+import 'package:creacionesbaby/core/providers/cart_provider.dart';
+import 'package:creacionesbaby/core/providers/product_provider.dart';
+import 'package:creacionesbaby/core/providers/order_provider.dart';
+import 'package:creacionesbaby/utils/app.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Supabase.initialize(
+    url: AppConfig.supabaseUrl,
+    anonKey: AppConfig.supabaseAnonKey,
+  );
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Creaciones Baby',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.pinkAccent),
-        useMaterial3: true,
-      ),
-      // Route based on platform
-      home: kIsWeb ? const ComingSoonPage() : const AdminLoginPage(),
-    );
-  }
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => AppConfigProvider()..loadConfig(),
+        ),
+        ChangeNotifierProvider(create: (_) => ProductProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => CartProvider()),
+        ChangeNotifierProvider(create: (_) => OrderProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
