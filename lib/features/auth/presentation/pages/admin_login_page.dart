@@ -1,4 +1,6 @@
 import 'package:creacionesbaby/core/providers/auth_provider.dart';
+import 'package:creacionesbaby/core/providers/order_provider.dart';
+import 'package:creacionesbaby/core/providers/product_provider.dart';
 import 'package:creacionesbaby/features/admin/dashboard/presentation/pages/admin_dashboard_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -142,6 +144,9 @@ class _LoginFormState extends State<_LoginForm> {
         );
 
         if (mounted) {
+          context.read<OrderProvider>().fetchOrders();
+          context.read<ProductProvider>().loadProducts();
+
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const AdminDashboardPage()),

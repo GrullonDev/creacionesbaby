@@ -1,4 +1,5 @@
 import 'package:creacionesbaby/core/providers/auth_provider.dart';
+import 'package:creacionesbaby/core/providers/order_provider.dart';
 import 'package:creacionesbaby/core/providers/product_provider.dart';
 import 'package:creacionesbaby/features/admin/dashboard/presentation/pages/banner_config_page.dart';
 import 'package:creacionesbaby/features/admin/orders/presentation/pages/order_list_page.dart';
@@ -123,16 +124,26 @@ class DashboardOverview extends StatelessWidget {
           ),
         ],
       ),
-      body: Consumer<ProductProvider>(
-        builder: (context, productProvider, _) {
+      body: Consumer2<ProductProvider, OrderProvider>(
+        builder: (context, productProvider, orderProvider, _) {
           final totalProducts = productProvider.products.length;
           final activeProducts = productProvider.products
               .where((p) => p.stock > 0)
               .length;
           final inactiveProducts = totalProducts - activeProducts;
 
+          final activeOrders = orderProvider.orders.where((o) {
+            final status = o.status.toLowerCase();
+            return status == 'pendiente' || status == 'enviado';
+          }).length;
+
           return RefreshIndicator(
-            onRefresh: () => productProvider.loadProducts(),
+            onRefresh: () async {
+              await productProvider.loadProducts();
+              if (context.mounted) {
+                await context.read<OrderProvider>().fetchOrders();
+              }
+            },
             child: ListView(
               padding: const EdgeInsets.all(16.0),
               children: [
@@ -181,14 +192,14 @@ class DashboardOverview extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: _buildGradientCard(
-                        title: 'Pedidos',
-                        value: '—',
+                        title: 'Pedidos Activos',
+                        value: '$activeOrders',
                         icon: Icons.shopping_bag_outlined,
                         gradientColors: [
                           const Color(0xFF2193b0),
                           const Color(0xFF6dd5ed),
                         ],
-                        subtitle: 'Próximamente',
+                        subtitle: 'Pendientes o Enviados',
                       ),
                     ),
                   ],

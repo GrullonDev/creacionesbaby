@@ -1,3 +1,4 @@
+import 'package:creacionesbaby/core/models/order_model.dart';
 import 'package:creacionesbaby/core/providers/order_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -20,92 +21,139 @@ class _OrderListPageState extends State<OrderListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Gestión de Pedidos'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              context.read<OrderProvider>().fetchOrders();
-            },
+    return DefaultTabController(
+      length: 4,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Gestión de Pedidos'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () {
+                context.read<OrderProvider>().fetchOrders();
+              },
+            ),
+          ],
+          bottom: const TabBar(
+            isScrollable: true,
+            tabs: [
+              Tab(text: 'Todos'),
+              Tab(text: 'Pendientes'),
+              Tab(text: 'Enviados'),
+              Tab(text: 'Entregados'),
+            ],
           ),
-        ],
-      ),
-      body: Consumer<OrderProvider>(
-        builder: (context, orderProvider, child) {
-          if (orderProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+        ),
+        body: Consumer<OrderProvider>(
+          builder: (context, orderProvider, child) {
+            if (orderProvider.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (orderProvider.error != null) {
-            return Center(
-              child: Text(
-                'Error: ${orderProvider.error}',
-                style: const TextStyle(color: Colors.red),
-              ),
-            );
-          }
-
-          if (orderProvider.orders.isEmpty) {
-            return const Center(child: Text('No hay pedidos realizados aún.'));
-          }
-
-          return ListView.builder(
-            itemCount: orderProvider.orders.length,
-            padding: const EdgeInsets.all(8),
-            itemBuilder: (context, index) {
-              final order = orderProvider.orders[index];
-
-              Color statusColor;
-              switch (order.status.toLowerCase()) {
-                case 'enviado':
-                  statusColor = Colors.blue;
-                  break;
-                case 'entregado':
-                  statusColor = Colors.green;
-                  break;
-                case 'cancelado':
-                  statusColor = Colors.red;
-                  break;
-                case 'pendiente':
-                default:
-                  statusColor = Colors.orange;
-              }
-
-              final dateStr = order.createdAt != null
-                  ? '${order.createdAt!.day}/${order.createdAt!.month}/${order.createdAt!.year}'
-                  : 'Fecha desconocida';
-
-              return Card(
-                margin: const EdgeInsets.symmetric(vertical: 4),
-                child: ListTile(
-                  title: Text('Pedido #${order.id?.substring(0, 8)}'),
-                  subtitle: Text(
-                    'Cliente: ${order.customerName}\n'
-                    'Total: Q${order.totalAmount.toStringAsFixed(2)} - $dateStr',
-                  ),
-                  trailing: Chip(
-                    label: Text(
-                      order.status.toUpperCase(),
-                      style: const TextStyle(color: Colors.white, fontSize: 10),
-                    ),
-                    backgroundColor: statusColor,
-                  ),
-                  onTap: () {
-                    // TODO: Navigate to Order Detail
-                    _showOrderDetails(context, order, orderProvider);
-                  },
+            if (orderProvider.error != null) {
+              return Center(
+                child: Text(
+                  'Error: ${orderProvider.error}',
+                  style: const TextStyle(color: Colors.red),
                 ),
               );
-            },
-          );
-        },
+            }
+
+            if (orderProvider.orders.isEmpty) {
+              return const Center(
+                child: Text('No hay pedidos realizados aún.'),
+              );
+            }
+
+            return TabBarView(
+              children: [
+                _buildOrderList(orderProvider.orders, orderProvider),
+                _buildOrderList(
+                  orderProvider.orders
+                      .where((o) => o.status.toLowerCase() == 'pendiente')
+                      .toList(),
+                  orderProvider,
+                ),
+                _buildOrderList(
+                  orderProvider.orders
+                      .where((o) => o.status.toLowerCase() == 'enviado')
+                      .toList(),
+                  orderProvider,
+                ),
+                _buildOrderList(
+                  orderProvider.orders
+                      .where((o) => o.status.toLowerCase() == 'entregado')
+                      .toList(),
+                  orderProvider,
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
 
-  void _showOrderDetails(BuildContext context, order, OrderProvider provider) {
+  Widget _buildOrderList(List<OrderModel> orders, OrderProvider orderProvider) {
+    if (orders.isEmpty) {
+      return const Center(child: Text('No hay pedidos en esta categoría.'));
+    }
+
+    return ListView.builder(
+      itemCount: orders.length,
+      padding: const EdgeInsets.all(8),
+      itemBuilder: (context, index) {
+        final order = orders[index];
+
+        Color statusColor;
+        switch (order.status.toLowerCase()) {
+          case 'enviado':
+            statusColor = Colors.blue;
+            break;
+          case 'entregado':
+            statusColor = Colors.green;
+            break;
+          case 'cancelado':
+            statusColor = Colors.red;
+            break;
+          case 'pendiente':
+          default:
+            statusColor = Colors.orange;
+        }
+
+        final dateStr = order.createdAt != null
+            ? '${order.createdAt!.day}/${order.createdAt!.month}/${order.createdAt!.year}'
+            : 'Fecha desconocida';
+
+        return Card(
+          margin: const EdgeInsets.symmetric(vertical: 4),
+          child: ListTile(
+            title: Text('Pedido #${order.id?.substring(0, 8)}'),
+            subtitle: Text(
+              'Cliente: ${order.customerName}\n'
+              'Total: Q${order.totalAmount.toStringAsFixed(2)} - $dateStr',
+            ),
+            trailing: Chip(
+              label: Text(
+                order.status.toUpperCase(),
+                style: const TextStyle(color: Colors.white, fontSize: 10),
+              ),
+              backgroundColor: statusColor,
+            ),
+            onTap: () {
+              _showOrderDetails(context, order, orderProvider);
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  void _showOrderDetails(
+    BuildContext context,
+    OrderModel order,
+    OrderProvider provider,
+  ) {
     showDialog(
       context: context,
       builder: (context) {
