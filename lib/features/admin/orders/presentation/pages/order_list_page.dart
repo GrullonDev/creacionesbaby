@@ -173,16 +173,14 @@ class _OrderListPageState extends State<OrderListPage> {
                   'Productos:',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                ...order.items
-                    .map<Widget>(
-                      (item) => Padding(
-                        padding: const EdgeInsets.only(top: 4.0),
-                        child: Text(
-                          '- ${item.quantity}x ${item.productName} (Talla: ${item.size}) - Q${item.totalPrice}',
-                        ),
-                      ),
-                    )
-                    .toList(),
+                ...order.items.map<Widget>(
+                  (item) => Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
+                    child: Text(
+                      '- ${item.quantity}x ${item.productName} (Talla: ${item.size}) - Q${item.totalPrice}',
+                    ),
+                  ),
+                ),
                 const Divider(),
                 Text(
                   'Total: Q${order.totalAmount}',

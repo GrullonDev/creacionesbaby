@@ -34,7 +34,7 @@ class OrderProvider extends ChangeNotifier {
           .toList();
     } catch (e) {
       _error = 'Error loading orders: $e';
-      print(_error);
+      debugPrint(_error);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -103,7 +103,7 @@ class OrderProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       _error = 'Error creating order: $e';
-      print(_error);
+      debugPrint(_error);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -127,7 +127,7 @@ class OrderProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       _error = 'Error updating status: $e';
-      print(_error);
+      debugPrint(_error);
       return false;
     }
   }
