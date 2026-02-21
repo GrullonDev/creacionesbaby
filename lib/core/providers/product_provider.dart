@@ -13,7 +13,7 @@ class ProductProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  // Initialize and load products
+  // Load all products
   Future<void> loadProducts() async {
     _isLoading = true;
     _error = null;
@@ -25,22 +25,11 @@ class ProductProvider with ChangeNotifier {
           .select()
           .order('created_at');
 
-      final List<dynamic> data = response;
-      _products = data
-          .map(
-            (json) => ProductModel(
-              id: json['id'].toString(),
-              name: json['name'] ?? '',
-              description: json['description'] ?? '',
-              price: (json['price'] as num).toDouble(),
-              stock: (json['stock'] as num).toInt(),
-              imagePath: json['image_url'],
-              isLocal: false,
-            ),
-          )
+      _products = (response as List)
+          .map((json) => ProductModel.fromJson(json))
           .toList();
     } catch (e) {
-      _error = 'Error loading products: $e';
+      _error = 'Error cargando productos: $e';
       debugPrint(_error);
     } finally {
       _isLoading = false;
@@ -48,47 +37,58 @@ class ProductProvider with ChangeNotifier {
     }
   }
 
-  // Create Product
+  // Upload a single image, returns public URL
+  Future<String> _uploadImage(Uint8List imageBytes) async {
+    final String fileName =
+        'product_${DateTime.now().millisecondsSinceEpoch}_${imageBytes.length}.jpg';
+
+    await _supabase.storage
+        .from('products_image')
+        .uploadBinary(
+          fileName,
+          imageBytes,
+          fileOptions: const FileOptions(upsert: false),
+        );
+
+    return _supabase.storage.from('products_image').getPublicUrl(fileName);
+  }
+
+  // Upload multiple images, returns list of URLs
+  Future<List<String>> _uploadImages(List<Uint8List> imageBytesList) async {
+    final List<String> urls = [];
+    for (int i = 0; i < imageBytesList.length; i++) {
+      final url = await _uploadImage(imageBytesList[i]);
+      urls.add(url);
+    }
+    return urls;
+  }
+
+  // Create Product with multiple images
   Future<void> addProduct(
     ProductModel product, {
-    Uint8List? imageBytes,
-    String? imagePath,
+    Uint8List? imageBytes, // backward compat
+    List<Uint8List>? imageBytesList,
   }) async {
     try {
       _isLoading = true;
       notifyListeners();
 
-      String? imageUrl;
+      List<String> imageUrls = [];
 
-      // Upload image if provided
-      if (imageBytes != null) {
-        final String fileName =
-            'product_${DateTime.now().millisecondsSinceEpoch}.jpg';
-
-        await _supabase.storage
-            .from('products_image')
-            .uploadBinary(
-              fileName,
-              imageBytes,
-              fileOptions: const FileOptions(upsert: false),
-            );
-
-        imageUrl = _supabase.storage
-            .from('products_image')
-            .getPublicUrl(fileName);
-      } else if (imagePath != null && !kIsWeb) {
-        // Fallback for file path on non-web if bytes aren't passed, though bytes are preferred
-        // Not implementing File based upload to keep it clean for web/mobile unified approach.
-        // Ensuring UI always passes bytes is better.
+      // Upload all images
+      if (imageBytesList != null && imageBytesList.isNotEmpty) {
+        imageUrls = await _uploadImages(imageBytesList);
+      } else if (imageBytes != null) {
+        final url = await _uploadImage(imageBytes);
+        imageUrls = [url];
       }
 
-      final Map<String, dynamic> productData = {
-        'name': product.name,
-        'description': product.description,
-        'price': product.price,
-        'stock': product.stock,
-        'image_url': imageUrl,
-      };
+      // Build product with all uploaded URLs, then toJson encodes them
+      final productWithImages = product.copyWith(
+        imageUrls: imageUrls,
+        imagePath: imageUrls.isNotEmpty ? imageUrls.first : null,
+      );
+      final productData = productWithImages.toJson();
 
       final response = await _supabase
           .from('products')
@@ -96,17 +96,7 @@ class ProductProvider with ChangeNotifier {
           .select()
           .single();
 
-      final newProduct = ProductModel(
-        id: response['id'].toString(),
-        name: response['name'] ?? '',
-        description: response['description'] ?? '',
-        price: (response['price'] as num).toDouble(),
-        stock: (response['stock'] as num).toInt(),
-        imagePath: response['image_url'], // This will now be the Supabase URL
-        isLocal: false,
-      );
-
-      _products.add(newProduct);
+      _products.add(ProductModel.fromJson(response));
       notifyListeners();
     } catch (e) {
       _isLoading = false;
@@ -118,7 +108,7 @@ class ProductProvider with ChangeNotifier {
         _error =
             "ERROR DE PERMISOS (RLS): No tienes permiso para subir imágenes. Verifica las 'Policies' en Supabase del bucket 'products_image' para permitir INSERT a 'authenticated'.";
       } else {
-        _error = 'Error adding product: $e';
+        _error = 'Error agregando producto: $e';
       }
       debugPrint(_error);
       notifyListeners();
@@ -129,22 +119,82 @@ class ProductProvider with ChangeNotifier {
     }
   }
 
-  // Delete Product (Soft Delete or Hard Delete)
+  // Update existing product with multiple images
+  Future<void> updateProduct(
+    ProductModel product, {
+    Uint8List? imageBytes,
+    List<Uint8List>? newImageBytesList,
+    List<String>? existingImageUrls, // URLs to keep
+  }) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      // Start with existing URLs the user wants to keep
+      List<String> finalUrls =
+          existingImageUrls ?? List.from(product.imageUrls);
+
+      // Upload new images and append
+      if (newImageBytesList != null && newImageBytesList.isNotEmpty) {
+        final newUrls = await _uploadImages(newImageBytesList);
+        finalUrls.addAll(newUrls);
+      } else if (imageBytes != null) {
+        final url = await _uploadImage(imageBytes);
+        finalUrls = [url];
+      }
+
+      // Build product with all URLs, then toJson encodes them
+      final updatedProduct = product.copyWith(
+        imagePath: finalUrls.isNotEmpty ? finalUrls.first : null,
+        imageUrls: finalUrls,
+      );
+      final productData = updatedProduct.toJson();
+
+      await _supabase.from('products').update(productData).eq('id', product.id);
+
+      // Update local list
+      final index = _products.indexWhere((p) => p.id == product.id);
+      if (index >= 0) {
+        _products[index] = updatedProduct.copyWith(isLocal: false);
+      }
+      notifyListeners();
+    } catch (e) {
+      _error = 'Error actualizando producto: $e';
+      debugPrint(_error);
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Delete Product
   Future<void> deleteProduct(String id) async {
     try {
       await _supabase.from('products').delete().eq('id', id);
       _products.removeWhere((p) => p.id == id);
       notifyListeners();
     } catch (e) {
-      debugPrint('Error deleting product: $e');
+      debugPrint('Error eliminando producto: $e');
       rethrow;
     }
   }
 
-  // Toggle Active Status (Update Stock to 0 or specific 'active' flag if db has it)
+  // Toggle Active Status
   Future<void> toggleProductStatus(String id, bool isActive) async {
-    // Implementation depends on DB schema.
-    // If 'active' column exists:
-    // await _supabase.from('products').update({'active': isActive}).eq('id', id);
+    try {
+      await _supabase
+          .from('products')
+          .update({'is_active': isActive})
+          .eq('id', id);
+
+      final index = _products.indexWhere((p) => p.id == id);
+      if (index >= 0) {
+        _products[index] = _products[index].copyWith(isActive: isActive);
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error actualizando estado: $e');
+    }
   }
 }

@@ -1,18 +1,17 @@
 import 'package:creacionesbaby/core/models/product_model.dart';
 import 'package:creacionesbaby/core/providers/product_provider.dart';
-import 'package:flutter/foundation.dart'; // For kIsWeb
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 class AddEditProductPage extends StatelessWidget {
-  final Map<String, dynamic>? product; // If null, it's adding a new product
+  final Map<String, dynamic>? product;
 
   const AddEditProductPage({super.key, this.product});
 
   @override
   Widget build(BuildContext context) {
-    // Determine if editing based on passed product map
     final isEditing = product != null;
     final productModel = isEditing
         ? ProductModel(
@@ -22,6 +21,9 @@ class AddEditProductPage extends StatelessWidget {
             price: (product!['price'] as num?)?.toDouble() ?? 0.0,
             stock: (product!['stock'] as num?)?.toInt() ?? 0,
             imagePath: product!['imagePath'],
+            imageUrls: product!['imageUrls'] != null
+                ? List<String>.from(product!['imageUrls'])
+                : [],
             isLocal: false,
           )
         : null;
@@ -36,44 +38,76 @@ class AddEditProductPage extends StatelessWidget {
             children: [
               ProductForm(
                 initialProduct: productModel,
-                onSave: (newProduct, imageBytes) async {
+                onSave: (newProduct, imageBytesList, existingUrls) async {
                   try {
                     if (isEditing) {
-                      // TODO: Implement update in provider
-                      // for now, we just add as new or show error
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Edición no implementada en backend aún.',
-                          ),
-                        ),
+                      await provider.updateProduct(
+                        newProduct,
+                        newImageBytesList: imageBytesList,
+                        existingImageUrls: existingUrls,
                       );
                     } else {
                       await provider.addProduct(
                         newProduct,
-                        imageBytes: imageBytes,
+                        imageBytesList: imageBytesList,
                       );
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Producto guardado exitosamente'),
+                    }
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Row(
+                            children: [
+                              const Icon(
+                                Icons.check_circle,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                isEditing
+                                    ? 'Producto actualizado exitosamente'
+                                    : 'Producto guardado exitosamente',
+                              ),
+                            ],
                           ),
-                        );
-                        Navigator.pop(context);
-                      }
+                          backgroundColor: Colors.green,
+                          behavior: SnackBarBehavior.floating,
+                          duration: const Duration(seconds: 3),
+                        ),
+                      );
                     }
                   } catch (e) {
                     if (context.mounted) {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Row(
+                            children: [
+                              const Icon(
+                                Icons.error_outline,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Error: ${e.toString().replaceAll('PostgrestException(message: ', '').replaceAll(')', '')}',
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          backgroundColor: Colors.red,
+                          behavior: SnackBarBehavior.floating,
+                          duration: const Duration(seconds: 5),
+                        ),
+                      );
                     }
                   }
                 },
               ),
               if (provider.isLoading)
                 Container(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withValues(alpha: 0.3),
                   child: const Center(child: CircularProgressIndicator()),
                 ),
             ],
@@ -86,7 +120,12 @@ class AddEditProductPage extends StatelessWidget {
 
 class ProductForm extends StatefulWidget {
   final ProductModel? initialProduct;
-  final Function(ProductModel product, Uint8List? imageBytes) onSave;
+  final Function(
+    ProductModel product,
+    List<Uint8List>? newImageBytesList,
+    List<String>? existingImageUrls,
+  )
+  onSave;
 
   const ProductForm({super.key, this.initialProduct, required this.onSave});
 
@@ -96,6 +135,7 @@ class ProductForm extends StatefulWidget {
 
 class _ProductFormState extends State<ProductForm> {
   final _formKey = GlobalKey<FormState>();
+  static const int _maxImages = 5;
 
   late TextEditingController _nameController;
   late TextEditingController _descController;
@@ -103,8 +143,14 @@ class _ProductFormState extends State<ProductForm> {
   late TextEditingController _stockController;
 
   bool _isActive = true;
-  Uint8List? _imageBytes;
   final ImagePicker _picker = ImagePicker();
+
+  // Multi-image state
+  final List<Uint8List> _newImageBytesList = []; // New images to upload
+  late List<String> _existingImageUrls; // Existing URLs from server
+
+  int get _totalImages => _existingImageUrls.length + _newImageBytesList.length;
+  bool get _canAddMore => _totalImages < _maxImages;
 
   @override
   void initState() {
@@ -119,6 +165,7 @@ class _ProductFormState extends State<ProductForm> {
       text: p != null ? p.stock.toString() : '',
     );
     _isActive = (p?.stock ?? 0) > 0;
+    _existingImageUrls = List.from(p?.imageUrls ?? []);
   }
 
   @override
@@ -130,37 +177,103 @@ class _ProductFormState extends State<ProductForm> {
     super.dispose();
   }
 
-  Future<void> _pickImage() async {
+  Future<void> _pickImage({required ImageSource source}) async {
+    if (!_canAddMore) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Máximo 5 imágenes permitidas')),
+      );
+      return;
+    }
     try {
-      final XFile? photo = await _picker.pickImage(source: ImageSource.camera);
+      final XFile? photo = await _picker.pickImage(
+        source: source,
+        imageQuality: 85,
+        maxWidth: 1200,
+      );
       if (photo != null) {
         final bytes = await photo.readAsBytes();
         setState(() {
-          _imageBytes = bytes;
+          _newImageBytesList.add(bytes);
         });
       }
     } catch (e) {
       debugPrint('Error picking image: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se pudo acceder a la cámara')),
+          const SnackBar(content: Text('No se pudo acceder a la imagen')),
         );
       }
     }
   }
 
+  void _showImageSourcePicker() {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera),
+              title: const Text('Cámara'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickImage(source: ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Galería'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickImage(source: ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _removeExistingImage(int index) {
+    setState(() {
+      _existingImageUrls.removeAt(index);
+    });
+  }
+
+  void _removeNewImage(int index) {
+    setState(() {
+      _newImageBytesList.removeAt(index);
+    });
+  }
+
   void _submit() {
     if (_formKey.currentState!.validate()) {
+      // Validate at least 1 image when creating
+      if (widget.initialProduct == null && _totalImages == 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Agrega al menos 1 imagen del producto'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
       final product = ProductModel(
         id: widget.initialProduct?.id ?? DateTime.now().toString(),
         name: _nameController.text,
         description: _descController.text,
         price: double.tryParse(_priceController.text) ?? 0.0,
         stock: int.tryParse(_stockController.text) ?? 0,
-        imagePath: widget.initialProduct?.imagePath, // Preserve old URL
+        imagePath: widget.initialProduct?.imagePath,
+        imageUrls: _existingImageUrls,
         isLocal: false,
       );
-      widget.onSave(product, _imageBytes);
+      widget.onSave(
+        product,
+        _newImageBytesList.isNotEmpty ? _newImageBytesList : null,
+        _existingImageUrls.isNotEmpty ? _existingImageUrls : null,
+      );
     }
   }
 
@@ -198,61 +311,117 @@ class _ProductFormState extends State<ProductForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Imágenes del Producto',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
-        const SizedBox(height: 8),
-        SizedBox(
-          height: 120,
-          child: Row(
-            children: [
-              InkWell(
-                onTap: _pickImage,
-                child: Container(
-                  width: 100,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey[400]!),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.add_a_photo,
-                        color: Colors.grey[700],
-                        size: 32,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Cámara',
-                        style: TextStyle(color: Colors.grey[700], fontSize: 12),
-                      ),
-                    ],
-                  ),
+        Row(
+          children: [
+            const Text(
+              'Imágenes del Producto',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: _totalImages > 0 ? Colors.green[50] : Colors.red[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: _totalImages > 0
+                      ? Colors.green[300]!
+                      : Colors.red[300]!,
                 ),
               ),
-              const SizedBox(width: 12),
-              if (_imageBytes != null)
-                _buildPreviewImage(
-                  Image.memory(
-                    _imageBytes!,
+              child: Text(
+                '$_totalImages / $_maxImages',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: _totalImages > 0 ? Colors.green[700] : Colors.red[700],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'La primera imagen será la principal. Mínimo 1, máximo $_maxImages.',
+          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 130,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              // Existing images from server
+              ..._existingImageUrls.asMap().entries.map((entry) {
+                final index = entry.key;
+                final url = entry.value;
+                return _buildImageTile(
+                  child: Image.network(
+                    url,
                     fit: BoxFit.cover,
-                    width: 100,
-                    height: 120,
-                  ),
-                )
-              else if (widget.initialProduct?.imagePath != null)
-                _buildPreviewImage(
-                  Image.network(
-                    widget.initialProduct!.imagePath!,
-                    fit: BoxFit.cover,
-                    width: 100,
-                    height: 120,
+                    width: 110,
+                    height: 130,
                     errorBuilder: (_, __, ___) =>
                         const Icon(Icons.broken_image),
+                  ),
+                  isPrimary: index == 0 && _existingImageUrls.isNotEmpty,
+                  onRemove: () => _removeExistingImage(index),
+                );
+              }),
+              // New images (not yet uploaded)
+              ..._newImageBytesList.asMap().entries.map((entry) {
+                final index = entry.key;
+                final bytes = entry.value;
+                return _buildImageTile(
+                  child: Image.memory(
+                    bytes,
+                    fit: BoxFit.cover,
+                    width: 110,
+                    height: 130,
+                  ),
+                  isPrimary: _existingImageUrls.isEmpty && index == 0,
+                  isNew: true,
+                  onRemove: () => _removeNewImage(index),
+                );
+              }),
+              // Add button
+              if (_canAddMore)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: InkWell(
+                    onTap: _showImageSourcePicker,
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      width: 110,
+                      height: 130,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.grey[400]!,
+                          style: BorderStyle.solid,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.add_photo_alternate_outlined,
+                            color: Colors.grey[600],
+                            size: 32,
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Agregar',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
             ],
@@ -262,29 +431,111 @@ class _ProductFormState extends State<ProductForm> {
     );
   }
 
-  Widget _buildPreviewImage(Widget image) {
-    return Stack(
-      children: [
-        ClipRRect(borderRadius: BorderRadius.circular(12), child: image),
-        Positioned(
-          top: 4,
-          right: 4,
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                _imageBytes = null;
-              });
-            },
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.close, color: Colors.red, size: 20),
+  Widget _buildImageTile({
+    required Widget child,
+    required VoidCallback onRemove,
+    bool isPrimary = false,
+    bool isNew = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 10),
+      child: Stack(
+        children: [
+          Container(
+            width: 110,
+            height: 130,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: isPrimary
+                  ? Border.all(
+                      color: Theme.of(context).primaryColor,
+                      width: 2.5,
+                    )
+                  : null,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(isPrimary ? 10 : 12),
+              child: child,
             ),
           ),
-        ),
-      ],
+          // Primary badge
+          if (isPrimary)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 3),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor,
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(10),
+                  ),
+                ),
+                child: const Text(
+                  'PRINCIPAL',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ),
+          // "NEW" badge
+          if (isNew)
+            Positioned(
+              top: 4,
+              left: 4,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text(
+                  'NUEVA',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 8,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          // Remove button
+          Positioned(
+            top: 4,
+            right: 4,
+            child: GestureDetector(
+              onTap: onRemove,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.2),
+                      blurRadius: 4,
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.close, color: Colors.red, size: 16),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

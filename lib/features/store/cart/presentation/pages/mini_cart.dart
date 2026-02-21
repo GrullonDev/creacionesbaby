@@ -1,5 +1,5 @@
 import 'package:creacionesbaby/core/providers/cart_provider.dart';
-import 'package:creacionesbaby/core/models/product_model.dart';
+import 'package:creacionesbaby/core/providers/product_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -157,7 +157,7 @@ class MiniCart extends StatelessWidget {
                       ),
               ),
 
-              // Upselling Section (Mock)
+              // Dynamic Product Suggestions
               if (cart.items.isNotEmpty) ...[
                 const Divider(),
                 Padding(
@@ -169,33 +169,128 @@ class MiniCart extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Completa tu compra',
+                        'También te puede interesar',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                         ),
                       ),
                       const SizedBox(height: 12),
-                      SizedBox(
-                        height: 100,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: [
-                            _UpsellItem(
-                              name: 'Limpiador',
-                              price: 45.00,
-                              image:
-                                  'https://images.unsplash.com/photo-1563453392212-326f5e854473?auto=format&fit=crop&q=80&w=200',
+                      Consumer<ProductProvider>(
+                        builder: (context, productProvider, _) {
+                          // Get products not already in cart
+                          final cartProductIds = cart.items
+                              .map((i) => i.product.id)
+                              .toSet();
+                          final suggestions = productProvider.products
+                              .where(
+                                (p) =>
+                                    !cartProductIds.contains(p.id) &&
+                                    p.stock > 0,
+                              )
+                              .take(3)
+                              .toList();
+
+                          if (suggestions.isEmpty) {
+                            return const SizedBox.shrink();
+                          }
+
+                          return SizedBox(
+                            height: 100,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: suggestions.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(width: 12),
+                              itemBuilder: (context, index) {
+                                final product = suggestions[index];
+                                return Container(
+                                  width: 250,
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Colors.grey[200]!,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(6),
+                                        child: SizedBox(
+                                          width: 60,
+                                          height: 60,
+                                          child: product.imagePath != null
+                                              ? Image.network(
+                                                  product.imagePath!,
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : Container(
+                                                  color: Colors.grey[100],
+                                                  child: const Icon(
+                                                    Icons.image,
+                                                    color: Colors.grey,
+                                                  ),
+                                                ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              product.name,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 13,
+                                              ),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            Text(
+                                              'Q${product.price.toStringAsFixed(2)}',
+                                              style: TextStyle(
+                                                color: Colors.grey[600],
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.add_circle_outline,
+                                          color: Colors.blue,
+                                        ),
+                                        onPressed: () {
+                                          cart.addItem(product);
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                '${product.name} agregado',
+                                              ),
+                                              duration: const Duration(
+                                                seconds: 1,
+                                              ),
+                                              behavior:
+                                                  SnackBarBehavior.floating,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
                             ),
-                            const SizedBox(width: 12),
-                            _UpsellItem(
-                              name: 'Babero',
-                              price: 85.00,
-                              image:
-                                  'https://images.unsplash.com/photo-1509343256512-d77a5cb3791b?auto=format&fit=crop&q=80&w=200',
-                            ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -278,85 +373,6 @@ class _QtyBtn extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(4.0),
         child: Icon(icon, size: 16, color: Colors.grey[600]),
-      ),
-    );
-  }
-}
-
-class _UpsellItem extends StatelessWidget {
-  final String name;
-  final double price;
-  final String image;
-
-  const _UpsellItem({
-    required this.name,
-    required this.price,
-    required this.image,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 250,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[200]!),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: Image.network(
-              image,
-              width: 60,
-              height: 60,
-              fit: BoxFit.cover,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                  ),
-                ),
-                Text(
-                  'Q${price.toStringAsFixed(2)}',
-                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline, color: Colors.blue),
-            onPressed: () {
-              context.read<CartProvider>().addItem(
-                ProductModel(
-                  id: 'upsell_${name.hashCode}',
-                  name: name,
-                  description: 'Producto complementario',
-                  price: price,
-                  stock: 99,
-                  imagePath: image,
-                ),
-              );
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('$name agregado al carrito'),
-                  duration: const Duration(seconds: 2),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            },
-          ),
-        ],
       ),
     );
   }

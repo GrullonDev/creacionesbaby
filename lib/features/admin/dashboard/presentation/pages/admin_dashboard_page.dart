@@ -1,7 +1,11 @@
+import 'package:creacionesbaby/core/providers/auth_provider.dart';
+import 'package:creacionesbaby/core/providers/product_provider.dart';
 import 'package:creacionesbaby/features/admin/dashboard/presentation/pages/banner_config_page.dart';
 import 'package:creacionesbaby/features/admin/orders/presentation/pages/order_list_page.dart';
 import 'package:creacionesbaby/features/admin/products/presentation/pages/product_list_page.dart';
+import 'package:creacionesbaby/features/auth/presentation/pages/admin_login_page.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -77,107 +81,205 @@ class DashboardOverview extends StatelessWidget {
             icon: const Icon(Icons.notifications_outlined),
             onPressed: () {},
           ),
+          IconButton(
+            icon: const Icon(Icons.logout_rounded),
+            tooltip: 'Cerrar Sesión',
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('Cerrar Sesión'),
+                  content: const Text(
+                    '¿Estás seguro que deseas cerrar sesión?',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Cancelar'),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        Navigator.pop(ctx);
+                        await context.read<AuthProvider>().signOut();
+                        if (context.mounted) {
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const AdminLoginPage(),
+                            ),
+                            (route) => false,
+                          );
+                        }
+                      },
+                      child: const Text(
+                        'Cerrar Sesión',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          // Summary Cards
-          Row(
-            children: [
-              Expanded(
-                child: _buildSummaryCard(
-                  context,
-                  'Ventas Totales',
-                  'Q1,250.00', // Mock data
-                  Icons.monetization_on,
-                  Colors.green,
+      body: Consumer<ProductProvider>(
+        builder: (context, productProvider, _) {
+          final totalProducts = productProvider.products.length;
+          final activeProducts = productProvider.products
+              .where((p) => p.stock > 0)
+              .length;
+          final inactiveProducts = totalProducts - activeProducts;
+
+          return RefreshIndicator(
+            onRefresh: () => productProvider.loadProducts(),
+            child: ListView(
+              padding: const EdgeInsets.all(16.0),
+              children: [
+                // Summary Cards with gradients
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildGradientCard(
+                        title: 'Total Productos',
+                        value: '$totalProducts',
+                        icon: Icons.inventory_2_outlined,
+                        gradientColors: [
+                          const Color(0xFF667eea),
+                          const Color(0xFF764ba2),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildGradientCard(
+                        title: 'Activos',
+                        value: '$activeProducts',
+                        icon: Icons.check_circle_outline,
+                        gradientColors: [
+                          const Color(0xFF11998e),
+                          const Color(0xFF38ef7d),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildSummaryCard(
-                  context,
-                  'Pedidos',
-                  '12', // Mock data
-                  Icons.shopping_bag,
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildGradientCard(
+                        title: 'Sin Stock',
+                        value: '$inactiveProducts',
+                        icon: Icons.warning_amber_outlined,
+                        gradientColors: [
+                          const Color(0xFFeb3349),
+                          const Color(0xFFf45c43),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildGradientCard(
+                        title: 'Pedidos',
+                        value: '—',
+                        icon: Icons.shopping_bag_outlined,
+                        gradientColors: [
+                          const Color(0xFF2193b0),
+                          const Color(0xFF6dd5ed),
+                        ],
+                        subtitle: 'Próximamente',
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                const Text(
+                  'Actividad Reciente',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                _buildActivityItem(
+                  'Productos sincronizados',
+                  'Al abrir la app',
                   Colors.blue,
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildSummaryCard(
-                  context,
-                  'Prod. Activos',
-                  '420', // Mock data
-                  Icons.check_circle,
-                  Colors.teal,
+                if (inactiveProducts > 0)
+                  _buildActivityItem(
+                    '$inactiveProducts producto(s) sin stock',
+                    'Revisar inventario',
+                    Colors.orange,
+                  ),
+                _buildActivityItem(
+                  'Sistema funcionando correctamente',
+                  'Estado: Conectado',
+                  Colors.green,
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildSummaryCard(
-                  context,
-                  'Prod. Inactivos',
-                  '30', // Mock data (Out of Stock)
-                  Icons.remove_circle,
-                  Colors.redAccent,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          const Text(
-            'Actividad Reciente',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          // Recent Activity List Placeholder
-          _buildActivityItem('Nuevo pedido #1023', 'Hace 5 min', Colors.blue),
-          _buildActivityItem(
-            'Stock bajo: Body Estampado',
-            'Hace 30 min',
-            Colors.orange,
-          ),
-          _buildActivityItem(
-            'Nuevo cliente registrado',
-            'Hace 1 hora',
-            Colors.green,
-          ),
-        ],
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildSummaryCard(
-    BuildContext context,
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: color, size: 30),
-            const SizedBox(height: 12),
-            Text(title, style: const TextStyle(color: Colors.grey)),
-            const SizedBox(height: 4),
+  Widget _buildGradientCard({
+    required String title,
+    required String value,
+    required IconData icon,
+    required List<Color> gradientColors,
+    String? subtitle,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: gradientColors,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: gradientColors.first.withValues(alpha: 0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: Colors.white.withValues(alpha: 0.8), size: 28),
+          const SizedBox(height: 12),
+          Text(
+            title,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.9),
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          if (subtitle != null) ...[
+            const SizedBox(height: 2),
             Text(
-              value,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              subtitle,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.7),
+                fontSize: 11,
+              ),
             ),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -185,6 +287,7 @@ class DashboardOverview extends StatelessWidget {
   Widget _buildActivityItem(String title, String subtitle, Color color) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: color.withValues(alpha: 0.1),

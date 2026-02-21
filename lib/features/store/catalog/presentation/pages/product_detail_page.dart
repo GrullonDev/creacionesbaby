@@ -237,15 +237,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   Widget _buildImageGallery() {
-    // Images: Product + Safety Cert
-    final images = widget.product.imagePath != null
-        ? [widget.product.imagePath!]
-        : [];
-
-    // Add Safety Certification Label Image (Mock)
-    images.add(
-      'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=400',
-    );
+    // Use all product images from imageUrls
+    final images = widget.product.imageUrls.isNotEmpty
+        ? widget.product.imageUrls
+        : (widget.product.imagePath != null
+              ? [widget.product.imagePath!]
+              : <String>[]);
 
     return Column(
       children: [
@@ -585,7 +582,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               child: ElevatedButton.icon(
                 onPressed: widget.product.stock > 0 ? _addToCart : null,
                 icon: const Icon(Icons.shopping_bag_outlined),
-                label: const Text('Add to Cart'),
+                label: const Text('Agregar al Carrito'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF3B82F6), // Brand Blue
                   foregroundColor: Colors.white,
@@ -618,7 +615,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   ),
                   elevation: 0,
                 ),
-                child: const Text('Buy It Now'),
+                child: const Text('Comprar Ahora'),
               ),
             ),
           ],
@@ -648,12 +645,14 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Product Description',
+          'Descripción del Producto',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
         Text(
-          'Experience hands-free parenting at its finest. Our ${widget.product.name} is meticulously designed to support your baby\'s natural development while ensuring maximum comfort for you. The breathable 3D mesh fabric keeps both parent and child cool during long walks.',
+          widget.product.description.isNotEmpty
+              ? widget.product.description
+              : 'Diseñado para la máxima comodidad y seguridad. ${widget.product.name} distribuye el peso de manera uniforme mientras proporciona un soporte superior para tu pequeño.',
           style: const TextStyle(
             fontSize: 16,
             height: 1.6,
@@ -662,7 +661,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         ),
         const SizedBox(height: 40),
         const Text(
-          'Safety Specifications',
+          'Especificaciones de Seguridad',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 24),
@@ -671,21 +670,21 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           children: [
             Expanded(
               child: _buildSpecCard(
-                'Certifications',
+                'Certificaciones',
                 Icons.verified_user_outlined,
                 [
-                  'ASTM F2236 Safety Standard',
+                  'Estándar de Seguridad ASTM F2236',
                   'OEKO-TEX Standard 100',
-                  'IHDI Acknowledged Hip Healthy',
+                  'Diseño Ergonómico Certificado',
                 ],
               ),
             ),
             const SizedBox(width: 24),
             Expanded(
-              child: _buildSpecCard('Technical Limits', Icons.scale_outlined, [
-                'Weight: 7 lbs - 45 lbs',
-                'Waistbelt: 26" to 55"',
-                'Fabric: 100% Recycled Polyester Mesh',
+              child: _buildSpecCard('Límites Técnicos', Icons.scale_outlined, [
+                'Peso: 3.2 kg - 20 kg',
+                'Edad: Recién nacido a 3 años',
+                'Tela: 100% Algodón Orgánico',
               ]),
             ),
           ],
@@ -764,26 +763,26 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Why BabyLuxury?',
+            '¿Por qué CreacionesBaby?',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 24),
           _buildSidebarItem(
             Icons.verified_outlined,
-            'Lifetime Warranty',
-            'We stand by our quality for years.',
+            'Garantía de Calidad',
+            'Respaldamos la calidad de nuestros productos.',
           ),
           const SizedBox(height: 16),
           _buildSidebarItem(
             Icons.refresh_outlined,
-            '30-Day Trials',
-            'Not the right fit? Return it for free.',
+            '30 Días de Prueba',
+            '¿No es lo que esperabas? Devúel velo gratis.',
           ),
           const SizedBox(height: 16),
           _buildSidebarItem(
             Icons.support_agent_outlined,
-            'Expert Consultation',
-            'Schedule a video call for fit help.',
+            'Atención Personalizada',
+            'Contáctanos para asesoría de productos.',
           ),
         ],
       ),
@@ -838,7 +837,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Customer Reviews',
+                    'Reseñas de Clientes',
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
@@ -856,12 +855,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       ),
                       const SizedBox(width: 12),
                       const Text(
-                        '4.8 out of 5',
+                        '4.8 de 5',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(width: 8),
                       const Text(
-                        'Based on 1,420 ratings',
+                        'Basado en 128 valoraciones',
                         style: TextStyle(color: Colors.grey),
                       ),
                     ],
@@ -875,7 +874,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text('Write a Review'),
+                child: const Text('Escribir Reseña'),
               ),
             ],
           ),
@@ -920,7 +919,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         ),
                         const SizedBox(height: 12),
                         const Text(
-                          'Best purchase for my back!',
+                          '¡Excelente calidad!',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -929,7 +928,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         const SizedBox(height: 8),
                         const Expanded(
                           child: Text(
-                            '"I\'ve tried four different carriers and this is the only one that doesn\'t cause lower back pain after an hour. The lumbar support is a game changer."',
+                            '"Muy buena calidad, el material es suave y seguro para mi bebé. Lo recomiendo al 100%."',
                             style: TextStyle(
                               color: Colors.black54,
                               fontStyle: FontStyle.italic,
@@ -958,14 +957,14 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
-                                  'Sarah M.',
+                                  'María G.',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 Text(
-                                  'Verified Purchaser',
+                                  'Compra Verificada',
                                   style: TextStyle(
                                     fontSize: 10,
                                     color: Colors.green[700],

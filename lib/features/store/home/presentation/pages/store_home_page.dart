@@ -5,8 +5,10 @@ import 'dart:async';
 import 'package:creacionesbaby/features/store/catalog/presentation/pages/catalog_page.dart';
 import 'package:creacionesbaby/features/store/cart/presentation/pages/mini_cart.dart';
 import 'package:creacionesbaby/features/store/catalog/presentation/pages/product_detail_page.dart';
+import 'package:creacionesbaby/utils/page_transitions.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class StoreHomePage extends StatefulWidget {
   const StoreHomePage({super.key});
@@ -84,6 +86,7 @@ class _StoreHomePageState extends State<StoreHomePage> {
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
+    final isWide = MediaQuery.of(context).size.width > 800;
     return AppBar(
       title: Row(
         children: [
@@ -91,35 +94,38 @@ class _StoreHomePageState extends State<StoreHomePage> {
             'Creaciones Baby',
             style: TextStyle(fontWeight: FontWeight.w900, fontSize: 22),
           ),
-          const SizedBox(width: 40),
-          Expanded(
-            child: Container(
-              height: 45,
-              constraints: const BoxConstraints(maxWidth: 500),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search baby essentials...',
-                  prefixIcon: const Icon(Icons.search, size: 20),
-                  filled: true,
-                  fillColor: Colors.grey[100],
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
+          if (isWide) ...[
+            const SizedBox(width: 40),
+            Expanded(
+              child: Container(
+                height: 45,
+                constraints: const BoxConstraints(maxWidth: 500),
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Buscar productos para bebé...',
+                    prefixIcon: const Icon(Icons.search, size: 20),
+                    filled: true,
+                    fillColor: Colors.grey[100],
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
+          ] else
+            const Spacer(),
         ],
       ),
       actions: [
-        if (MediaQuery.of(context).size.width > 800) ...[
+        if (isWide) ...[
           TextButton(
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const CatalogPage()),
+                SmoothPageRoute(page: const CatalogPage()),
               );
             },
             child: const Text(
@@ -127,17 +133,8 @@ class _StoreHomePageState extends State<StoreHomePage> {
               style: TextStyle(color: Colors.black87),
             ),
           ),
-          TextButton(
-            onPressed: () {},
-            child: const Text(
-              'Safety Guide',
-              style: TextStyle(color: Colors.black87),
-            ),
-          ),
           const SizedBox(width: 16),
         ],
-        IconButton(icon: const Icon(Icons.person_outline), onPressed: () {}),
-        IconButton(icon: const Icon(Icons.favorite_border), onPressed: () {}),
         Consumer<CartProvider>(
           builder: (context, cart, child) {
             return Badge(
@@ -151,26 +148,27 @@ class _StoreHomePageState extends State<StoreHomePage> {
             );
           },
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: 8),
       ],
     );
   }
 
   Widget _buildHeroSection(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
     return Consumer<AppConfigProvider>(
       builder: (context, config, _) {
-        // If config has a specific banner, use it as the first image
         final displayImages = [..._heroImages];
         if (config.bannerImageUrl != null) {
           displayImages.insert(0, config.bannerImageUrl!);
         }
 
         return SizedBox(
-          height: 600, // Taller, more cinematic
+          height: isMobile ? 400 : 600,
           width: double.infinity,
           child: Stack(
             children: [
-              // Carousel
               PageView.builder(
                 controller: _pageController,
                 itemCount: displayImages.length,
@@ -203,8 +201,6 @@ class _StoreHomePageState extends State<StoreHomePage> {
                   );
                 },
               ),
-
-              // Overlay Gradient for text readability
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -217,23 +213,21 @@ class _StoreHomePageState extends State<StoreHomePage> {
                   ),
                 ),
               ),
-
-              // Content
               Center(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 24),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         'Seguridad en la que confías,\ncomodidad que ellos aman',
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
-                          fontSize: 48,
+                          fontSize: isMobile ? 28 : 48,
                           fontWeight: FontWeight.bold,
                           height: 1.1,
-                          shadows: [
+                          shadows: const [
                             Shadow(
                               blurRadius: 10.0,
                               color: Colors.black45,
@@ -242,28 +236,33 @@ class _StoreHomePageState extends State<StoreHomePage> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      const Text(
+                      const SizedBox(height: 16),
+                      Text(
                         'Esenciales premium diseñados para el desarrollo de tu bebé.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 18,
+                          fontSize: isMobile ? 14 : 18,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 32),
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            SmoothPageRoute(page: const CatalogPage()),
+                          );
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 20,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isMobile ? 24 : 32,
+                            vertical: isMobile ? 14 : 20,
                           ),
-                          textStyle: const TextStyle(
-                            fontSize: 16,
+                          textStyle: TextStyle(
+                            fontSize: isMobile ? 14 : 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -273,8 +272,6 @@ class _StoreHomePageState extends State<StoreHomePage> {
                   ),
                 ),
               ),
-
-              // Indicators
               Positioned(
                 bottom: 30,
                 left: 0,
@@ -319,13 +316,13 @@ class _StoreHomePageState extends State<StoreHomePage> {
           children: [
             _featureItem(
               Icons.local_shipping_outlined,
-              'Envío Gratis',
-              'En todas las órdenes',
+              'Envío a Domicilio',
+              'En toda Guatemala',
             ),
             _featureItem(
-              Icons.medical_services_outlined,
-              'Certificación Médica',
-              'Aprobado por pediatras',
+              Icons.verified_outlined,
+              'Calidad Garantizada',
+              'Productos certificados',
             ),
             _featureItem(
               Icons.assignment_return_outlined,
@@ -334,8 +331,8 @@ class _StoreHomePageState extends State<StoreHomePage> {
             ),
             _featureItem(
               Icons.eco_outlined,
-              'Materiales Orgánicos',
-              '100% Algodón sostenible',
+              'Materiales Seguros',
+              'Hipoalergénicos para bebé',
             ),
           ],
         ),
@@ -449,7 +446,7 @@ class _StoreHomePageState extends State<StoreHomePage> {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Explore Essentials →',
+              'Explorar Productos →',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 14,
@@ -474,18 +471,23 @@ class _StoreHomePageState extends State<StoreHomePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Trending Now',
+                    'Lo Más Popular',
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   Text(
-                    'Our most loved pieces this season',
+                    'Nuestros productos favoritos esta temporada',
                     style: TextStyle(color: Colors.grey),
                   ),
                 ],
               ),
               TextButton(
-                onPressed: () {},
-                child: const Text('View All Products >'),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    SmoothPageRoute(page: const CatalogPage()),
+                  );
+                },
+                child: const Text('Ver Todos los Productos >'),
               ),
             ],
           ),
@@ -500,7 +502,11 @@ class _StoreHomePageState extends State<StoreHomePage> {
               }
               final products = provider.products.take(5).toList();
               if (products.isEmpty) {
-                return const Center(child: Text('Coming soon'));
+                return const Center(
+                  child: Text(
+                    'Próximamente — estamos preparando los mejores productos',
+                  ),
+                );
               }
 
               return ListView.separated(
@@ -513,8 +519,8 @@ class _StoreHomePageState extends State<StoreHomePage> {
                   return GestureDetector(
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => ProductDetailPage(product: product),
+                      SmoothPageRoute(
+                        page: ProductDetailPage(product: product),
                       ),
                     ),
                     child: Container(
@@ -559,11 +565,13 @@ class _StoreHomePageState extends State<StoreHomePage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'CATEGORY',
+                                  product.stock > 0 ? 'DISPONIBLE' : 'AGOTADO',
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.grey[600],
+                                    color: product.stock > 0
+                                        ? Colors.green[600]
+                                        : Colors.red[600],
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -577,24 +585,13 @@ class _StoreHomePageState extends State<StoreHomePage> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 const SizedBox(height: 8),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Q${product.price.toStringAsFixed(2)}',
-                                      style: TextStyle(
-                                        color: Theme.of(context).primaryColor,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    const Icon(
-                                      Icons.star,
-                                      size: 16,
-                                      color: Colors.amber,
-                                    ),
-                                  ],
+                                Text(
+                                  'Q${product.price.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    color: Theme.of(context).primaryColor,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
                                 ),
                               ],
                             ),
@@ -607,14 +604,25 @@ class _StoreHomePageState extends State<StoreHomePage> {
                             child: SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
-                                onPressed: () {},
+                                onPressed: product.stock > 0
+                                    ? () {
+                                        context.read<CartProvider>().addItem(
+                                          product,
+                                        );
+                                        Scaffold.of(context).openEndDrawer();
+                                      }
+                                    : null,
                                 style: ElevatedButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 8,
                                   ),
                                   textStyle: const TextStyle(fontSize: 12),
                                 ),
-                                child: const Text('Add to Cart'),
+                                child: Text(
+                                  product.stock > 0
+                                      ? 'Agregar al Carrito'
+                                      : 'Agotado',
+                                ),
                               ),
                             ),
                           ),
@@ -632,40 +640,250 @@ class _StoreHomePageState extends State<StoreHomePage> {
   }
 
   Widget _buildFooter(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
     return Container(
-      color: const Color(0xFF0F172A), // Dark Blue
-      padding: const EdgeInsets.all(40),
-      child: Center(
-        child: Column(
-          children: [
-            const Text(
-              'Creaciones Baby',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+      color: const Color(0xFF0F172A),
+      child: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 24 : 60,
+              vertical: isMobile ? 32 : 48,
             ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisSize: MainAxisSize.min,
+            child: isMobile
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      _buildFooterBrand(),
+                      const SizedBox(height: 32),
+                      _buildFooterLinks(context),
+                      const SizedBox(height: 32),
+                      _buildFooterSocial(),
+                    ],
+                  )
+                : Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(flex: 2, child: _buildFooterBrand()),
+                      const SizedBox(width: 48),
+                      Expanded(child: _buildFooterLinks(context)),
+                      const SizedBox(width: 48),
+                      Expanded(child: _buildFooterSocial()),
+                    ],
+                  ),
+          ),
+          // Bottom bar
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+            decoration: const BoxDecoration(
+              border: Border(top: BorderSide(color: Colors.white12)),
+            ),
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 16,
+              runSpacing: 8,
               children: [
-                IconButton(
-                  icon: const Icon(Icons.facebook, color: Colors.white),
-                  onPressed: () {},
+                const Text(
+                  '© 2026 CreacionesBaby. Todos los derechos reservados.',
+                  style: TextStyle(color: Colors.white38, fontSize: 12),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.camera_alt, color: Colors.white),
-                  onPressed: () {},
+                const Text(
+                  'Hecho con ❤️ en Guatemala',
+                  style: TextStyle(color: Colors.white38, fontSize: 12),
                 ),
               ],
             ),
-            const SizedBox(height: 32),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooterBrand() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFF472B6), Color(0xFFA78BFA)],
+                ),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.child_care,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
             const Text(
-              '© 2026 Creaciones Baby. All Rights Reserved.',
-              style: TextStyle(color: Colors.white54),
+              'CreacionesBaby',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+              ),
             ),
           ],
+        ),
+        const SizedBox(height: 16),
+        const Text(
+          'Productos artesanales para tu bebé, hechos con amor y los mejores materiales. Calidad y cariño en cada creación.',
+          style: TextStyle(color: Colors.white54, fontSize: 14, height: 1.6),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFooterLinks(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'NAVEGACIÓN',
+          style: TextStyle(
+            color: Colors.white70,
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.5,
+          ),
+        ),
+        const SizedBox(height: 16),
+        _footerLink('Catálogo', () {
+          Navigator.push(context, SmoothPageRoute(page: const CatalogPage()));
+        }),
+        _footerLink('Sobre Nosotros', null),
+        _footerLink('Contacto', () {
+          launchUrl(Uri.parse('https://wa.me/50200000000'));
+        }),
+        _footerLink('Política de Privacidad', null),
+      ],
+    );
+  }
+
+  Widget _footerLink(String text, VoidCallback? onTap) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: InkWell(
+        onTap: onTap,
+        child: Text(
+          text,
+          style: TextStyle(
+            color: onTap != null ? Colors.white60 : Colors.white30,
+            fontSize: 14,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFooterSocial() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'SÍGUENOS',
+          style: TextStyle(
+            color: Colors.white70,
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.5,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            _socialButton(
+              icon: Icons.chat_rounded,
+              label: 'WhatsApp',
+              color: const Color(0xFF25D366),
+              url: 'https://wa.me/50242909548',
+            ),
+            _socialButton(
+              icon: Icons.facebook_rounded,
+              label: 'Facebook',
+              color: const Color(0xFF1877F2),
+              url: 'https://facebook.com/IngenieroChapin2020',
+            ),
+            _socialButton(
+              icon: Icons.camera_alt_rounded,
+              label: 'Instagram',
+              color: const Color(0xFFE4405F),
+              url: 'https://instagram.com/jorgegrullondev',
+            ),
+            _socialButton(
+              icon: Icons.music_note_rounded,
+              label: 'TikTok',
+              color: const Color(0xFF000000),
+              url: 'https://tiktok.com/@grullondev',
+            ),
+          ],
+        ),
+        const SizedBox(height: 20),
+        const Text(
+          '¿Tienes preguntas? Escríbenos:',
+          style: TextStyle(color: Colors.white38, fontSize: 12),
+        ),
+        const SizedBox(height: 4),
+        GestureDetector(
+          onTap: () => launchUrl(Uri.parse('mailto:info@creacionesbaby.com')),
+          child: const Text(
+            'info@creacionesbaby.com',
+            style: TextStyle(
+              color: Color(0xFFA78BFA),
+              fontSize: 14,
+              decoration: TextDecoration.underline,
+              decorationColor: Color(0xFFA78BFA),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _socialButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required String url,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: () =>
+            launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: color.withValues(alpha: 0.3)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: color, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

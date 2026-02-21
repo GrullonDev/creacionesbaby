@@ -76,7 +76,7 @@ class _ProductListPageState extends State<ProductListPage> {
       ),
       body: Consumer<ProductProvider>(
         builder: (context, provider, child) {
-          if (provider.isLoading) {
+          if (provider.isLoading && provider.products.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
 
@@ -92,81 +92,111 @@ class _ProductListPageState extends State<ProductListPage> {
             return true;
           }).toList();
 
-          return ListView.builder(
-            itemCount: filteredProducts.length,
-            padding: const EdgeInsets.all(8),
-            itemBuilder: (context, index) {
-              final product = filteredProducts[index];
-              final isActive = product.stock > 0;
+          return RefreshIndicator(
+            onRefresh: () => provider.loadProducts(),
+            child: ListView.builder(
+              itemCount: filteredProducts.length,
+              padding: const EdgeInsets.all(12),
+              itemBuilder: (context, index) {
+                final product = filteredProducts[index];
+                final isActive = product.stock > 0;
 
-              return Card(
-                margin: const EdgeInsets.symmetric(vertical: 4),
-                child: ListTile(
-                  leading: Stack(
-                    children: [
-                      Container(
-                        width: 50,
-                        height: 50,
-                        color: Colors.grey[300],
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 6),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(12),
+                    leading: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: SizedBox(
+                        width: 64,
+                        height: 64,
                         child: product.imagePath != null
                             ? Image.network(
-                                product.imagePath!, // Assuming URL for now
+                                product.imagePath!,
                                 fit: BoxFit.cover,
-                                errorBuilder: (c, o, s) =>
-                                    const Icon(Icons.image, color: Colors.grey),
+                                errorBuilder: (c, o, s) => Container(
+                                  color: Colors.grey[200],
+                                  child: const Icon(
+                                    Icons.image,
+                                    color: Colors.grey,
+                                  ),
+                                ),
                               )
-                            : const Icon(Icons.image, color: Colors.grey),
+                            : Container(
+                                color: Colors.grey[200],
+                                child: const Icon(
+                                  Icons.image,
+                                  color: Colors.grey,
+                                ),
+                              ),
                       ),
-                      if (!isActive)
-                        Positioned(
-                          right: 0,
-                          bottom: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(2),
-                            color: Colors.red,
-                            child: const Icon(
-                              Icons.close,
-                              size: 12,
-                              color: Colors.white,
+                    ),
+                    title: Text(
+                      product.name,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Row(
+                        children: [
+                          Icon(
+                            isActive ? Icons.check_circle : Icons.cancel,
+                            size: 14,
+                            color: isActive ? Colors.green : Colors.red,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Stock: ${product.stock}',
+                            style: TextStyle(
+                              color: isActive
+                                  ? Colors.green[700]
+                                  : Colors.red[700],
+                              fontSize: 13,
                             ),
                           ),
-                        ),
-                    ],
-                  ),
-                  title: Text(product.name),
-                  subtitle: Text(
-                    'Stock: ${product.stock} | Precio: Q${product.price}',
-                    style: TextStyle(
-                      color: isActive ? Colors.black87 : Colors.red,
-                    ),
-                  ),
-                  trailing: PopupMenuButton<String>(
-                    onSelected: (String value) {
-                      if (value == 'edit') {
-                        _navigateToEdit(context, product);
-                      } else if (value == 'delete') {
-                        _confirmDelete(context, provider, product);
-                      }
-                    },
-                    itemBuilder: (BuildContext context) =>
-                        <PopupMenuEntry<String>>[
-                          const PopupMenuItem<String>(
-                            value: 'edit',
-                            child: Text('Editar'),
-                          ),
-                          const PopupMenuItem<String>(
-                            value: 'delete',
-                            child: Text(
-                              'Eliminar',
-                              style: TextStyle(color: Colors.red),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Q${product.price.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).primaryColor,
+                              fontSize: 14,
                             ),
                           ),
                         ],
+                      ),
+                    ),
+                    trailing: PopupMenuButton<String>(
+                      onSelected: (String value) {
+                        if (value == 'edit') {
+                          _navigateToEdit(context, product);
+                        } else if (value == 'delete') {
+                          _confirmDelete(context, provider, product);
+                        }
+                      },
+                      itemBuilder: (BuildContext context) =>
+                          <PopupMenuEntry<String>>[
+                            const PopupMenuItem<String>(
+                              value: 'edit',
+                              child: Text('Editar'),
+                            ),
+                            const PopupMenuItem<String>(
+                              value: 'delete',
+                              child: Text(
+                                'Eliminar',
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          ],
+                    ),
+                    onTap: () => _navigateToEdit(context, product),
                   ),
-                  onTap: () => _navigateToEdit(context, product),
-                ),
-              );
-            },
+                );
+              },
+            ),
           );
         },
       ),
@@ -188,12 +218,14 @@ class _ProductListPageState extends State<ProductListPage> {
       MaterialPageRoute(
         builder: (context) => AddEditProductPage(
           product: {
+            'id': product.id,
             'name': product.name,
             'description': product.description,
             'price': product.price,
             'stock': product.stock,
+            'imagePath': product.imagePath,
+            'imageUrls': product.imageUrls,
             'isActive': product.stock > 0,
-            // Pass other modifyable fields
           },
         ),
       ),
