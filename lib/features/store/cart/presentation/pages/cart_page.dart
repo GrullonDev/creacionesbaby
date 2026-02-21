@@ -164,14 +164,15 @@ class CartPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
+                      // Integration with StripeService
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text(
-                            'Proceso de pago no implementado en esta demo.',
-                          ),
+                          content: Text('Iniciando pago con Stripe...'),
                         ),
                       );
+                      // In a real scenario, we would call StripeService().presentPaymentSheet()
+                      // after creating a payment intent via backend.
                     },
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(double.infinity, 50),

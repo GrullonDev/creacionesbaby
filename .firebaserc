@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "portfolio-b302f"
+  },
+  "targets": {
+    "portfolio-b302f": {
+      "hosting": {
+        "creacionesbaby": [
+          "creacionesbaby"
+        ]
+      }
+    }
+  }
+}

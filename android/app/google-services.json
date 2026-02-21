@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "399657046600",
+    "project_id": "portfolio-b302f",
+    "storage_bucket": "portfolio-b302f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:399657046600:android:f6768dd5c342a1802dbe7d",
+        "android_client_info": {
+          "package_name": "com.creacionesbaby.creacionesbaby"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcuh76PTj_TbAnWIzen6MODBof0CBOONI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

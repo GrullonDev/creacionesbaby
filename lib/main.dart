@@ -4,13 +4,18 @@ import 'package:creacionesbaby/core/providers/auth_provider.dart';
 import 'package:creacionesbaby/core/providers/cart_provider.dart';
 import 'package:creacionesbaby/core/providers/product_provider.dart';
 import 'package:creacionesbaby/core/providers/order_provider.dart';
+import 'package:creacionesbaby/core/services/stripe_service.dart';
+import 'package:creacionesbaby/firebase_options.dart';
 import 'package:creacionesbaby/utils/app.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await StripeService.init();
   await Supabase.initialize(
     url: AppConfig.supabaseUrl,
     anonKey: AppConfig.supabaseAnonKey,
