@@ -68,6 +68,13 @@ class MiniCart extends StatelessWidget {
                                         child: Image.network(
                                           item.product.imagePath!,
                                           fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                                return const Icon(
+                                                  Icons.image_not_supported,
+                                                  color: Colors.grey,
+                                                );
+                                              },
                                         ),
                                       )
                                     : const Icon(
@@ -224,6 +231,22 @@ class MiniCart extends StatelessWidget {
                                               ? Image.network(
                                                   product.imagePath!,
                                                   fit: BoxFit.cover,
+                                                  errorBuilder:
+                                                      (
+                                                        context,
+                                                        error,
+                                                        stackTrace,
+                                                      ) {
+                                                        return Container(
+                                                          color:
+                                                              Colors.grey[100],
+                                                          child: const Icon(
+                                                            Icons
+                                                                .image_not_supported,
+                                                            color: Colors.grey,
+                                                          ),
+                                                        );
+                                                      },
                                                 )
                                               : Container(
                                                   color: Colors.grey[100],

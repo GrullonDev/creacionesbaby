@@ -404,6 +404,17 @@ class _ProductCardState extends State<_ProductCard> {
                                   fit: BoxFit.cover,
                                   width: double.infinity,
                                   height: double.infinity,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      color: Colors.grey[100],
+                                      child: const Center(
+                                        child: Icon(
+                                          Icons.image_not_supported,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 )
                               : Container(
                                   color: Colors.grey[100],

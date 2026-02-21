@@ -22,12 +22,6 @@ class _StoreHomePageState extends State<StoreHomePage> {
   late PageController _pageController;
   Timer? _carouselTimer;
 
-  final List<String> _heroImages = [
-    'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=2000&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=2000&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?q=80&w=2000&auto=format&fit=crop',
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -35,7 +29,15 @@ class _StoreHomePageState extends State<StoreHomePage> {
 
     // Auto-advance carousel
     _carouselTimer = Timer.periodic(const Duration(seconds: 5), (Timer timer) {
-      if (_currentHeroPage < _heroImages.length - 1) {
+      if (!mounted) return;
+      final config = context.read<AppConfigProvider>();
+      final int count = config.bannerImageUrls.isNotEmpty
+          ? config.bannerImageUrls.length
+          : (config.bannerImageUrl != null ? 1 : 0);
+
+      if (count <= 1) return;
+
+      if (_currentHeroPage < count - 1) {
         _currentHeroPage++;
       } else {
         _currentHeroPage = 0;
@@ -159,9 +161,15 @@ class _StoreHomePageState extends State<StoreHomePage> {
 
     return Consumer<AppConfigProvider>(
       builder: (context, config, _) {
-        final displayImages = [..._heroImages];
-        if (config.bannerImageUrl != null) {
-          displayImages.insert(0, config.bannerImageUrl!);
+        List<String> displayImages = [];
+        if (config.bannerImageUrls.isNotEmpty) {
+          displayImages = config.bannerImageUrls;
+        } else if (config.bannerImageUrl != null) {
+          displayImages = [config.bannerImageUrl!];
+        }
+
+        if (displayImages.isEmpty) {
+          return const SizedBox.shrink();
         }
 
         return SizedBox(
@@ -549,6 +557,16 @@ class _StoreHomePageState extends State<StoreHomePage> {
                                       product.imagePath!,
                                       fit: BoxFit.cover,
                                       width: double.infinity,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            return Container(
+                                              color: Colors.grey[100],
+                                              child: const Icon(
+                                                Icons.image_not_supported,
+                                                color: Colors.grey,
+                                              ),
+                                            );
+                                          },
                                     )
                                   : Container(
                                       color: Colors.grey[100],

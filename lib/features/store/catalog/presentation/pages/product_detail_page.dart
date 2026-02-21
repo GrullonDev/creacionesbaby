@@ -266,6 +266,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                               ? _selectedImageIndex
                               : 0],
                           fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Center(
+                              child: Icon(
+                                Icons.broken_image,
+                                size: 80,
+                                color: Colors.grey,
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ),
