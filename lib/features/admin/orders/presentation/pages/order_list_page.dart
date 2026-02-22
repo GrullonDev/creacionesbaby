@@ -1,5 +1,6 @@
 import 'package:creacionesbaby/core/models/order_model.dart';
 import 'package:creacionesbaby/core/providers/order_provider.dart';
+import 'package:creacionesbaby/core/providers/product_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -191,16 +192,22 @@ class _OrderListPageState extends State<OrderListPage> {
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                provider.updateOrderStatus(order.id!, 'enviado');
-                Navigator.pop(context);
+              onPressed: () async {
+                final success = await provider.updateOrderStatus(
+                  order,
+                  'enviado',
+                );
+                if (success && context.mounted) {
+                  context.read<ProductProvider>().loadProducts();
+                }
+                if (context.mounted) Navigator.pop(context);
               },
               child: const Text('Marcar Enviado'),
             ),
             TextButton(
-              onPressed: () {
-                provider.updateOrderStatus(order.id!, 'entregado');
-                Navigator.pop(context);
+              onPressed: () async {
+                await provider.updateOrderStatus(order, 'entregado');
+                if (context.mounted) Navigator.pop(context);
               },
               child: const Text('Marcar Entregado'),
             ),

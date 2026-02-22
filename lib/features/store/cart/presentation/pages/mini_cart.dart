@@ -480,6 +480,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
       );
 
       if (success) {
+        // Refresh products so stock update is visible in catalog
+        context.read<ProductProvider>().loadProducts();
+
         cartProvider.clearCart();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

@@ -21,8 +21,8 @@ class OrderItemModel {
 
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
     return OrderItemModel(
-      id: json['id'] as String?,
-      orderId: json['order_id'] ?? '',
+      id: json['id']?.toString(),
+      orderId: json['order_id']?.toString() ?? '',
       productId: json['product_id']?.toString() ?? '',
       productName: json['product_name'] ?? '',
       size: json['size'] ?? '',
@@ -81,7 +81,7 @@ class OrderModel {
         [];
 
     return OrderModel(
-      id: json['id'] as String?,
+      id: json['id']?.toString(),
       customerEmail: json['customer_email'] ?? '',
       customerName: json['customer_name'] ?? '',
       customerPhone: json['customer_phone'] ?? '',

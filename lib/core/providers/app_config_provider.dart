@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AppConfigProvider extends ChangeNotifier {
-  final _supabase = Supabase.instance.client;
+  SupabaseClient get _supabase => Supabase.instance.client;
 
   String _bannerText = 'Nueva Colección 2026';
   String? _bannerImageUrl; // Mantenido por compatibilidad

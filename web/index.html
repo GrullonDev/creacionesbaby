@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <!--
     If you are serving your web app in a path other than the root, change the
@@ -27,18 +28,24 @@
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="icon" type="image/png" href="favicon.png" />
 
   <title>creacionesbaby</title>
   <link rel="manifest" href="manifest.json">
+  <script>
+    window.flutterConfiguration = {
+      renderer: "html"
+    };
+  </script>
 </head>
+
 <body>
   <script>
     // Failsafe to unregister old service workers and clear cache after deployment
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-          for(let registration of registrations) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.getRegistrations().then(function (registrations) {
+          for (let registration of registrations) {
             registration.unregister();
           }
         });
@@ -46,7 +53,7 @@
     }
     // Clear cache specifically for the service worker file
     if ('caches' in window) {
-      caches.keys().then(function(names) {
+      caches.keys().then(function (names) {
         for (let name of names) {
           if (name.includes('flutter-app-')) caches.delete(name);
         }
@@ -55,4 +62,5 @@
   </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
+
 </html>
