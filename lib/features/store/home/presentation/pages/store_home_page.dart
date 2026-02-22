@@ -168,47 +168,69 @@ class _StoreHomePageState extends State<StoreHomePage> {
           displayImages = [config.bannerImageUrl!];
         }
 
-        if (displayImages.isEmpty) {
-          return const SizedBox.shrink();
-        }
+        // Always return the Hero container so text/buttons are visible
+        // even if displayImages is empty.
 
         return SizedBox(
           height: isMobile ? 400 : 600,
           width: double.infinity,
           child: Stack(
             children: [
-              PageView.builder(
-                controller: _pageController,
-                itemCount: displayImages.length,
-                onPageChanged: (index) {
-                  setState(() {
-                    _currentHeroPage = index;
-                  });
-                },
-                itemBuilder: (context, index) {
-                  return Image.network(
-                    displayImages[index],
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(color: Colors.grey[200]);
-                    },
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                              : null,
-                          color: Colors.white,
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
+              if (displayImages.isNotEmpty)
+                PageView.builder(
+                  controller: _pageController,
+                  itemCount: displayImages.length,
+                  onPageChanged: (index) {
+                    setState(() {
+                      _currentHeroPage = index;
+                    });
+                  },
+                  itemBuilder: (context, index) {
+                    return Image.network(
+                      displayImages[index],
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [Colors.grey[800]!, Colors.grey[900]!],
+                            ),
+                          ),
+                        );
+                      },
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                      loadingProgress.expectedTotalBytes!
+                                : null,
+                            color: Colors.white,
+                          ),
+                        );
+                      },
+                    );
+                  },
+                )
+              else
+                // Fallback gradient if no images at all
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Theme.of(context).primaryColor.withValues(alpha: 0.8),
+                        const Color(0xFF0F172A),
+                      ],
+                    ),
+                  ),
+                ),
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -280,28 +302,29 @@ class _StoreHomePageState extends State<StoreHomePage> {
                   ),
                 ),
               ),
-              Positioned(
-                bottom: 30,
-                left: 0,
-                right: 0,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(displayImages.length, (index) {
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      width: _currentHeroPage == index ? 24 : 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: _currentHeroPage == index
-                            ? Colors.white
-                            : Colors.white.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    );
-                  }),
+              if (displayImages.length > 1)
+                Positioned(
+                  bottom: 30,
+                  left: 0,
+                  right: 0,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(displayImages.length, (index) {
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        width: _currentHeroPage == index ? 24 : 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: _currentHeroPage == index
+                              ? Colors.white
+                              : Colors.white.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      );
+                    }),
+                  ),
                 ),
-              ),
             ],
           ),
         );
@@ -777,11 +800,15 @@ class _StoreHomePageState extends State<StoreHomePage> {
         _footerLink('Catálogo', () {
           Navigator.push(context, SmoothPageRoute(page: const CatalogPage()));
         }),
-        _footerLink('Sobre Nosotros', null),
-        _footerLink('Contacto', () {
-          launchUrl(Uri.parse('https://wa.me/50200000000'));
+        _footerLink('Sobre Nosotros', () {
+          _showComingSoon(context, 'Sobre Nosotros');
         }),
-        _footerLink('Política de Privacidad', null),
+        _footerLink('Contacto', () {
+          launchUrl(Uri.parse('https://wa.me/50242909548'));
+        }),
+        _footerLink('Política de Privacidad', () {
+          _showComingSoon(context, 'Política de Privacidad');
+        }),
       ],
     );
   }
@@ -903,6 +930,16 @@ class _StoreHomePageState extends State<StoreHomePage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showComingSoon(BuildContext context, String feature) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$feature estará disponible próximamente.'),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
       ),
     );
   }
