@@ -480,16 +480,16 @@ class _CheckoutPageState extends State<CheckoutPage> {
       );
 
       if (success) {
+        if (!mounted) return;
+
         // Refresh products so stock update is visible in catalog
         context.read<ProductProvider>().loadProducts();
 
         cartProvider.clearCart();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('¡Pedido realizado con éxito!')),
-          );
-          Navigator.pop(context); // Go back to start
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('¡Pedido realizado con éxito!')),
+        );
+        Navigator.pop(context); // Go back to start
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
