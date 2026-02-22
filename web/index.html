@@ -33,6 +33,26 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+  <script>
+    // Failsafe to unregister old service workers and clear cache after deployment
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister();
+          }
+        });
+      });
+    }
+    // Clear cache specifically for the service worker file
+    if ('caches' in window) {
+      caches.keys().then(function(names) {
+        for (let name of names) {
+          if (name.includes('flutter-app-')) caches.delete(name);
+        }
+      });
+    }
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
