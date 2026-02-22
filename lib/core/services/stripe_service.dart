@@ -1,10 +1,15 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 
 class StripeService {
   static Future<void> init() async {
     // Note: In production, the publishable key should come from a secure config
     Stripe.publishableKey = "pk_test_sample_key"; // Placeholder
-    await Stripe.instance.applySettings();
+
+    // Stripe settings are primarily for mobile; avoid potential hangs on Web
+    if (!kIsWeb) {
+      await Stripe.instance.applySettings();
+    }
   }
 
   Future<void> createPaymentIntent() async {
