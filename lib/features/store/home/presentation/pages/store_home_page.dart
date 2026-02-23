@@ -118,7 +118,7 @@ class _StoreHomePageState extends State<StoreHomePage> {
               const SizedBox(width: 60),
               _navItem(
                 context,
-                'Shop',
+                'Tienda',
                 false,
                 onTap: () {
                   Navigator.push(
@@ -129,7 +129,7 @@ class _StoreHomePageState extends State<StoreHomePage> {
               ),
               _navItem(
                 context,
-                'Newborn',
+                'Recién Nacido',
                 false,
                 onTap: () {
                   Navigator.push(
@@ -138,8 +138,8 @@ class _StoreHomePageState extends State<StoreHomePage> {
                   );
                 },
               ),
-              _navItem(context, 'Toys', false),
-              _navItem(context, 'About Us', false),
+              _navItem(context, 'Juguetes', false),
+              _navItem(context, 'Nosotros', false),
               _navItem(
                 context,
                 'Contacto',

@@ -134,9 +134,36 @@ class _ProductListPageState extends State<ProductListPage> {
                               ),
                       ),
                     ),
-                    title: Text(
-                      product.name,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    title: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            product.name,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        if (product.category != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Theme.of(
+                                context,
+                              ).primaryColor.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              product.category!,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).primaryColor,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                     subtitle: Padding(
                       padding: const EdgeInsets.only(top: 4),
@@ -225,7 +252,8 @@ class _ProductListPageState extends State<ProductListPage> {
             'stock': product.stock,
             'imagePath': product.imagePath,
             'imageUrls': product.imageUrls,
-            'isActive': product.stock > 0,
+            'category': product.category,
+            'isActive': product.isActive,
           },
         ),
       ),

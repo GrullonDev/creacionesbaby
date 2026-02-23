@@ -19,6 +19,7 @@ class CatalogPage extends StatefulWidget {
 class _CatalogPageState extends State<CatalogPage> {
   RangeValues _priceRange = const RangeValues(0, 5000);
   String _searchQuery = '';
+  final List<String> _selectedCategories = [];
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -81,7 +82,11 @@ class _CatalogPageState extends State<CatalogPage> {
                         final matchesSearch =
                             _searchQuery.isEmpty ||
                             p.name.toLowerCase().contains(_searchQuery);
-                        return matchesPrice && matchesSearch;
+                        final matchesCategory =
+                            _selectedCategories.isEmpty ||
+                            (p.category != null &&
+                                _selectedCategories.contains(p.category));
+                        return matchesPrice && matchesSearch && matchesCategory;
                       }).toList();
                       return Column(
                         children: [
@@ -143,10 +148,31 @@ class _CatalogPageState extends State<CatalogPage> {
       child: Row(
         children: [
           if (MediaQuery.of(context).size.width > 800) ...[
-            _headerNav('Newborn', true),
-            _headerNav('Bundles', false),
-            _headerNav('Pajamas', false),
-            _headerNav('Accessories', false),
+            _headerNav(
+              'Recién Nacido',
+              _selectedCategories.contains('Recién Nacido'),
+              onTap: () => _toggleCategory('Recién Nacido'),
+            ),
+            _headerNav(
+              'Conjuntos',
+              _selectedCategories.contains('Conjuntos'),
+              onTap: () => _toggleCategory('Conjuntos'),
+            ),
+            _headerNav(
+              'Pijamas',
+              _selectedCategories.contains('Pijamas'),
+              onTap: () => _toggleCategory('Pijamas'),
+            ),
+            _headerNav(
+              'Accesorios',
+              _selectedCategories.contains('Accesorios'),
+              onTap: () => _toggleCategory('Accesorios'),
+            ),
+            _headerNav(
+              'Juguetes',
+              _selectedCategories.contains('Juguetes'),
+              onTap: () => _toggleCategory('Juguetes'),
+            ),
             const Spacer(),
           ],
           Expanded(
@@ -177,11 +203,11 @@ class _CatalogPageState extends State<CatalogPage> {
     );
   }
 
-  Widget _headerNav(String title, bool isActive) {
+  Widget _headerNav(String title, bool isActive, {VoidCallback? onTap}) {
     return Padding(
       padding: const EdgeInsets.only(right: 32),
       child: InkWell(
-        onTap: () {},
+        onTap: onTap,
         child: Text(
           title,
           style: TextStyle(
@@ -191,6 +217,16 @@ class _CatalogPageState extends State<CatalogPage> {
         ),
       ),
     );
+  }
+
+  void _toggleCategory(String category) {
+    setState(() {
+      if (_selectedCategories.contains(category)) {
+        _selectedCategories.remove(category);
+      } else {
+        _selectedCategories.add(category);
+      }
+    });
   }
 
   Widget _buildBreadcrumbs(BuildContext context) {
@@ -231,8 +267,10 @@ class _CatalogPageState extends State<CatalogPage> {
           const Text('Filtros', style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(width: 16),
           TextButton(
-            onPressed: () =>
-                setState(() => _priceRange = const RangeValues(0, 5000)),
+            onPressed: () => setState(() {
+              _priceRange = const RangeValues(0, 5000);
+              _selectedCategories.clear();
+            }),
             child: const Text(
               'Limpiar todo',
               style: TextStyle(fontSize: 12, color: AppTheme.primaryMedium),
@@ -270,9 +308,23 @@ class _CatalogPageState extends State<CatalogPage> {
         child: Column(
           children: [
             _sidebarSection('Categoría', [
-              _checkOption('Mamelucos', true),
-              _checkOption('Conjuntos', false),
-              _checkOption('Pijamas', false),
+              _checkOption(
+                'Recién Nacido',
+                _selectedCategories.contains('Recién Nacido'),
+              ),
+              _checkOption(
+                'Conjuntos',
+                _selectedCategories.contains('Conjuntos'),
+              ),
+              _checkOption('Pijamas', _selectedCategories.contains('Pijamas')),
+              _checkOption(
+                'Accesorios',
+                _selectedCategories.contains('Accesorios'),
+              ),
+              _checkOption(
+                'Juguetes',
+                _selectedCategories.contains('Juguetes'),
+              ),
             ]),
             _sidebarSection('Edad', [
               const SizedBox(height: 8),
@@ -330,16 +382,21 @@ class _CatalogPageState extends State<CatalogPage> {
   }
 
   Widget _checkOption(String label, bool isChecked) {
-    return Row(
-      children: [
-        Checkbox(
-          value: isChecked,
-          onChanged: (v) {},
-          activeColor: AppTheme.primaryGreen,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-        ),
-        Text(label, style: const TextStyle(fontSize: 13)),
-      ],
+    return InkWell(
+      onTap: () => _toggleCategory(label),
+      child: Row(
+        children: [
+          Checkbox(
+            value: isChecked,
+            onChanged: (v) => _toggleCategory(label),
+            activeColor: AppTheme.primaryGreen,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          Text(label, style: const TextStyle(fontSize: 13)),
+        ],
+      ),
     );
   }
 
@@ -490,18 +547,20 @@ class _ProductCardState extends State<_ProductCard> {
   Widget build(BuildContext context) {
     final discount = widget.product.price > 400 ? 20 : 0;
 
-    // Determine category color
-    Color catColor = AppTheme.backgroundSoft;
+    // Determine category color/label mapping
+    Color catColor = AppTheme.pastelGreen;
     String catLabel = widget.product.category ?? 'General';
 
-    if (catLabel.toLowerCase().contains('niña') ||
-        catLabel.toLowerCase().contains('girl')) {
-      catColor = AppTheme.girlPink;
-    } else if (catLabel.toLowerCase().contains('niño') ||
-        catLabel.toLowerCase().contains('boy')) {
-      catColor = AppTheme.boyBlue;
-    } else if (catLabel.toLowerCase().contains('unisex')) {
+    if (catLabel == 'Recién Nacido') {
       catColor = AppTheme.unisexYellow;
+    } else if (catLabel == 'Conjuntos') {
+      catColor = AppTheme.girlPink;
+    } else if (catLabel == 'Pijamas') {
+      catColor = AppTheme.boyBlue;
+    } else if (catLabel == 'Accesorios') {
+      catColor = AppTheme.pastelGreen;
+    } else if (catLabel == 'Juguetes') {
+      catColor = const Color(0xFFFFD1DC); // Soft pastel pink
     }
 
     return GestureDetector(

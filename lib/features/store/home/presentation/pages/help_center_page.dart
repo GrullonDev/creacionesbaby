@@ -186,6 +186,8 @@ class _HelpCenterPageState extends State<HelpCenterPage> {
         return _buildReturnsContent();
       case 'sizes':
         return _buildSizeGuide();
+      case 'payments':
+        return _buildPaymentsContent();
       default:
         return _buildShippingContent();
     }
@@ -283,6 +285,28 @@ class _HelpCenterPageState extends State<HelpCenterPage> {
             fontStyle: FontStyle.italic,
             color: Colors.grey,
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPaymentsContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle(Icons.payment_outlined, 'Métodos de Pago'),
+        const SizedBox(height: 32),
+        _faqItem(
+          '¿Qué métodos de pago aceptan?',
+          'Aceptamos Transferencia Bancaria, PayPal y Efectivo (pago contra entrega).',
+        ),
+        _faqItem(
+          '¿Cómo funciona el pago por transferencia?',
+          'Al finalizar tu pedido, recibirás los datos de nuestra cuenta bancaria. Envíanos el comprobante por WhatsApp para procesar tu envío.',
+        ),
+        _faqItem(
+          '¿Es seguro el pago contra entrega?',
+          'Sí, es una opción segura donde pagas en efectivo al mensajero en el momento exacto en que recibes tu paquete.',
         ),
       ],
     );

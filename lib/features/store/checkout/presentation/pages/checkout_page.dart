@@ -24,13 +24,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
   final _cityCtrl = TextEditingController();
   final _zipCtrl = TextEditingController();
 
-  // Card details
-  final _cardNumberCtrl = TextEditingController();
-  final _expiryCtrl = TextEditingController();
-  final _cvvCtrl = TextEditingController();
-
   String _selectedShippingMethod = 'standard';
-  String _selectedPaymentMethod = 'card';
+  String _selectedPaymentMethod = 'bank';
   bool _sendNewsletters = false;
 
   @override
@@ -42,9 +37,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
     _phoneCtrl.dispose();
     _cityCtrl.dispose();
     _zipCtrl.dispose();
-    _cardNumberCtrl.dispose();
-    _expiryCtrl.dispose();
-    _cvvCtrl.dispose();
     super.dispose();
   }
 
@@ -109,7 +101,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundSoft,
       appBar: AppBar(
-        title: const Text('CHECKOUT'),
+        title: const Text('FINALIZAR COMPRA'),
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
@@ -322,72 +314,56 @@ class _CheckoutPageState extends State<CheckoutPage> {
             child: Column(
               children: [
                 _buildPaymentOption(
-                  id: 'card',
-                  title: 'Tarjeta de Crédito / Débito',
-                  icon: Icons.credit_card,
-                  isExpanded: _selectedPaymentMethod == 'card',
-                  onTap: () => setState(() => _selectedPaymentMethod = 'card'),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 16),
-                      _buildLabel('NÚMERO DE TARJETA'),
-                      _buildTextField(
-                        controller: _cardNumberCtrl,
-                        hint: '0000 0000 0000 0000',
-                        suffix: const Icon(
-                          Icons.lock,
-                          size: 16,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildLabel('FECHA VENCIMIENTO'),
-                                _buildTextField(
-                                  controller: _expiryCtrl,
-                                  hint: 'MM/YY',
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildLabel('CVC / CVV'),
-                                _buildTextField(
-                                  controller: _cvvCtrl,
-                                  hint: '123',
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                _buildPaymentOption(
-                  id: 'paypal',
-                  title: 'PayPal',
-                  icon: Icons.account_balance_wallet_outlined,
-                  isExpanded: false,
-                  onTap: () =>
-                      setState(() => _selectedPaymentMethod = 'paypal'),
-                ),
-                _buildPaymentOption(
                   id: 'bank',
                   title: 'Transferencia Bancaria',
                   icon: Icons.account_balance_outlined,
-                  isExpanded: false,
+                  isExpanded: _selectedPaymentMethod == 'bank',
                   onTap: () => setState(() => _selectedPaymentMethod = 'bank'),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      'Realiza tu pago directamente en nuestra cuenta bancaria. Tu pedido no se enviará hasta que el importe haya sido recibido.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.primaryMedium,
+                      ),
+                    ),
+                  ),
+                ),
+                /* _buildPaymentOption(
+                  id: 'paypal',
+                  title: 'PayPal',
+                  icon: Icons.payment_outlined,
+                  isExpanded: _selectedPaymentMethod == 'paypal',
+                  onTap: () =>
+                      setState(() => _selectedPaymentMethod = 'paypal'),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      'Paga a través de PayPal; puedes pagar con tu tarjeta de crédito si no tienes una cuenta de PayPal.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.primaryMedium,
+                      ),
+                    ),
+                  ),
+                ), */
+                _buildPaymentOption(
+                  id: 'cash',
+                  title: 'Pago contra entrega',
+                  icon: Icons.payments_outlined,
+                  isExpanded: _selectedPaymentMethod == 'cash',
+                  onTap: () => setState(() => _selectedPaymentMethod = 'cash'),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      'Paga en efectivo al momento de recibir tu pedido en la puerta de tu casa.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.primaryMedium,
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
