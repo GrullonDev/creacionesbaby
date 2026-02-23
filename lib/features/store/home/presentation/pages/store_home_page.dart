@@ -225,10 +225,10 @@ class _StoreHomePageState extends State<StoreHomePage> {
           ),
         ),
         const SizedBox(height: 48),
-        Row(
-          mainAxisAlignment: isWide
-              ? MainAxisAlignment.start
-              : MainAxisAlignment.center,
+        Wrap(
+          alignment: isWide ? WrapAlignment.start : WrapAlignment.center,
+          spacing: 16,
+          runSpacing: 16,
           children: [
             ElevatedButton(
               onPressed: () {
@@ -239,21 +239,20 @@ class _StoreHomePageState extends State<StoreHomePage> {
               },
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 40,
-                  vertical: 24,
+                  horizontal: 32,
+                  vertical: 20,
                 ),
                 backgroundColor: AppTheme.primaryGreen,
                 elevation: 0,
               ),
               child: const Text('Ver Colección'),
             ),
-            const SizedBox(width: 20),
             OutlinedButton(
               onPressed: () {},
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 40,
-                  vertical: 24,
+                  horizontal: 32,
+                  vertical: 20,
                 ),
               ),
               child: const Text('Nuestra Historia'),
