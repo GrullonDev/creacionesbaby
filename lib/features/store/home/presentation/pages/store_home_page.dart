@@ -1,10 +1,11 @@
+import 'dart:async';
 import 'package:creacionesbaby/config/app_theme.dart';
 import 'package:creacionesbaby/core/providers/app_config_provider.dart';
 import 'package:creacionesbaby/core/providers/cart_provider.dart';
 import 'package:creacionesbaby/core/providers/product_provider.dart';
-import 'dart:async';
-import 'package:creacionesbaby/features/store/catalog/presentation/pages/catalog_page.dart';
+import 'package:creacionesbaby/core/widgets/store_app_bar.dart';
 import 'package:creacionesbaby/features/store/cart/presentation/pages/mini_cart.dart';
+import 'package:creacionesbaby/features/store/catalog/presentation/pages/catalog_page.dart';
 import 'package:creacionesbaby/features/store/catalog/presentation/pages/product_detail_page.dart';
 import 'package:creacionesbaby/features/store/home/presentation/pages/contact_page.dart';
 import 'package:creacionesbaby/features/store/home/presentation/pages/help_center_page.dart';
@@ -72,7 +73,7 @@ class _StoreHomePageState extends State<StoreHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       endDrawer: const MiniCart(),
-      appBar: _buildAppBar(context),
+      appBar: const StoreAppBar(),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -85,137 +86,10 @@ class _StoreHomePageState extends State<StoreHomePage> {
             const SizedBox(height: 40),
             _buildTrendingSection(context),
             const SizedBox(height: 80),
+            _buildBlogSection(context),
+            const SizedBox(height: 80),
             _buildNewsletterSection(context),
             _buildFooter(context),
-          ],
-        ),
-      ),
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
-    final isWide = MediaQuery.of(context).size.width > 900;
-    return AppBar(
-      title: Padding(
-        padding: EdgeInsets.symmetric(horizontal: isWide ? 40 : 0),
-        child: Row(
-          children: [
-            const Icon(
-              Icons.child_care,
-              color: AppTheme.primaryGreen,
-              size: 28,
-            ),
-            const SizedBox(width: 8),
-            const Text(
-              'Creaciones Baby',
-              style: TextStyle(
-                fontWeight: FontWeight.w900,
-                fontSize: 22,
-                color: AppTheme.primaryDark,
-              ),
-            ),
-            if (isWide) ...[
-              const SizedBox(width: 60),
-              _navItem(
-                context,
-                'Tienda',
-                false,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    SmoothPageRoute(page: const CatalogPage()),
-                  );
-                },
-              ),
-              _navItem(
-                context,
-                'Recién Nacido',
-                false,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    SmoothPageRoute(page: const CatalogPage()),
-                  );
-                },
-              ),
-              _navItem(context, 'Juguetes', false),
-              _navItem(context, 'Nosotros', false),
-              _navItem(
-                context,
-                'Contacto',
-                false,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    SmoothPageRoute(page: const ContactPage()),
-                  );
-                },
-              ),
-            ],
-          ],
-        ),
-      ),
-      actions: [
-        if (!isWide)
-          IconButton(icon: const Icon(Icons.search), onPressed: () {})
-        else
-          IconButton(
-            icon: const Icon(Icons.search, size: 20),
-            onPressed: () {},
-          ),
-        Consumer<CartProvider>(
-          builder: (context, cart, child) {
-            return Badge(
-              label: Text('${cart.itemCount}'),
-              isLabelVisible: cart.itemCount > 0,
-              backgroundColor: AppTheme.primaryGreen,
-              child: IconButton(
-                icon: const Icon(Icons.shopping_cart_outlined),
-                onPressed: () => Scaffold.of(context).openEndDrawer(),
-              ),
-            );
-          },
-        ),
-        const SizedBox(width: 40),
-      ],
-    );
-  }
-
-  Widget _navItem(
-    BuildContext context,
-    String title,
-    bool isActive, {
-    VoidCallback? onTap,
-    Color? dotColor,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 32),
-      child: InkWell(
-        onTap: onTap ?? () {},
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (dotColor != null) ...[
-              Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: dotColor,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 8),
-            ],
-            Text(
-              title,
-              style: TextStyle(
-                color: isActive
-                    ? AppTheme.primaryGreen
-                    : AppTheme.primaryDark.withValues(alpha: 0.6),
-                fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-                fontSize: 14,
-              ),
-            ),
           ],
         ),
       ),
@@ -302,19 +176,26 @@ class _StoreHomePageState extends State<StoreHomePage> {
           : CrossAxisAlignment.center,
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             color: AppTheme.primaryGreen.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
           ),
-          child: const Text(
-            'DESDE 2015',
-            style: TextStyle(
-              color: AppTheme.primaryGreen,
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-              letterSpacing: 1.2,
-            ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.favorite, color: AppTheme.primaryGreen, size: 16),
+              SizedBox(width: 8),
+              Text(
+                'Pensado con amor para tu bebé',
+                style: TextStyle(
+                  color: AppTheme.primaryGreen,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 24),
@@ -323,11 +204,11 @@ class _StoreHomePageState extends State<StoreHomePage> {
           text: TextSpan(
             style: Theme.of(
               context,
-            ).textTheme.displayLarge?.copyWith(fontSize: isWide ? 56 : 36),
+            ).textTheme.displayLarge?.copyWith(fontSize: isWide ? 64 : 36),
             children: const [
-              TextSpan(text: 'Nuestra Historia:\n'),
+              TextSpan(text: 'Calidad y Ternura\n'),
               TextSpan(
-                text: 'Tejida con Amor y Propósito',
+                text: 'en cada puntada',
                 style: TextStyle(color: AppTheme.primaryGreen),
               ),
             ],
@@ -335,23 +216,49 @@ class _StoreHomePageState extends State<StoreHomePage> {
         ),
         const SizedBox(height: 24),
         Text(
-          'Creaciones Baby nació en 2015 del deseo de una madre de vestir a sus hijos con la suavidad de un abrazo y la pureza de lo natural. Lo que comenzó como un pequeño taller familiar, hoy es una comunidad dedicada a acompañar a padres en la maravillosa aventura de ver crecer a sus pequeños.',
+          'En Creaciones Baby, cada prenda es una promesa de suavidad. Utilizamos los mejores materiales para cuidar la piel de quien más amas, acompañándote en cada etapa de su crecimiento con diseños únicos y funcionales.',
           textAlign: isWide ? TextAlign.left : TextAlign.center,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: AppTheme.primaryDark.withValues(alpha: 0.6),
-            height: 1.6,
+            color: AppTheme.primaryDark.withValues(alpha: 0.7),
+            height: 1.8,
+            fontSize: 18,
           ),
         ),
-        const SizedBox(height: 40),
-        ElevatedButton.icon(
-          onPressed: () {
-            Navigator.push(context, SmoothPageRoute(page: const CatalogPage()));
-          },
-          icon: const Icon(Icons.arrow_forward, size: 18),
-          label: const Text('Explorar Colección'),
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 22),
-          ),
+        const SizedBox(height: 48),
+        Row(
+          mainAxisAlignment: isWide
+              ? MainAxisAlignment.start
+              : MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  SmoothPageRoute(page: const CatalogPage()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 40,
+                  vertical: 24,
+                ),
+                backgroundColor: AppTheme.primaryGreen,
+                elevation: 0,
+              ),
+              child: const Text('Ver Colección'),
+            ),
+            const SizedBox(width: 20),
+            OutlinedButton(
+              onPressed: () {},
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 40,
+                  vertical: 24,
+                ),
+              ),
+              child: const Text('Nuestra Historia'),
+            ),
+          ],
         ),
       ],
     );
@@ -361,12 +268,12 @@ class _StoreHomePageState extends State<StoreHomePage> {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.primaryGreen,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryGreen.withValues(alpha: 0.3),
-            blurRadius: 40,
-            offset: const Offset(0, 20),
+            color: AppTheme.primaryGreen.withValues(alpha: 0.2),
+            blurRadius: 60,
+            offset: const Offset(0, 30),
           ),
         ],
       ),
@@ -374,19 +281,23 @@ class _StoreHomePageState extends State<StoreHomePage> {
       child: Stack(
         children: [
           Image.network(
-            'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?q=80&w=1200&auto=format&fit=crop',
+            'https://images.unsplash.com/photo-1540479859555-17af45c78602?q=80&w=1200&auto=format&fit=crop',
             fit: BoxFit.cover,
-            height: 500,
+            height: 600,
             width: double.infinity,
           ),
+          // Gradient Overlay
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  width: 1,
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    AppTheme.primaryDark.withValues(alpha: 0.4),
+                    Colors.transparent,
+                  ],
                 ),
-                borderRadius: BorderRadius.circular(24),
               ),
             ),
           ),
@@ -1049,6 +960,166 @@ class _StoreHomePageState extends State<StoreHomePage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildBlogSection(BuildContext context) {
+    final isWide = MediaQuery.of(context).size.width > 900;
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: isWide ? 80 : 24),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Consejos para Padres',
+                    style: Theme.of(context).textTheme.displaySmall,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Acompañándote en cada paso de la crianza',
+                    style: TextStyle(
+                      color: AppTheme.primaryDark.withValues(alpha: 0.6),
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+              if (isWide)
+                OutlinedButton(
+                  onPressed: () {},
+                  child: const Text('Ver todos los artículos'),
+                ),
+            ],
+          ),
+          const SizedBox(height: 48),
+          Wrap(
+            spacing: 30,
+            runSpacing: 40,
+            children: [
+              _blogCard(
+                context,
+                'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?q=80&w=600',
+                'Cuidados del Recién Nacido',
+                'Todo lo que necesitas saber sobre las primeras semanas de vida de tu bebé.',
+                '5 min de lectura',
+              ),
+              _blogCard(
+                context,
+                'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=600',
+                'Ropa Orgánica vs Tradicional',
+                'Descubre los beneficios de las fibras naturales para la piel sensible.',
+                '4 min de lectura',
+              ),
+              _blogCard(
+                context,
+                'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=600',
+                'Estimulación Temprana',
+                'Juegos y actividades para potenciar el desarrollo de tu pequeño.',
+                '6 min de lectura',
+              ),
+            ],
+          ),
+          if (!isWide) ...[
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () {},
+                child: const Text('Ver todos los artículos'),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _blogCard(
+    BuildContext context,
+    String imageUrl,
+    String title,
+    String excerpt,
+    String readTime,
+  ) {
+    return Container(
+      width: 400,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Image.network(
+            imageUrl,
+            height: 240,
+            width: double.infinity,
+            fit: BoxFit.cover,
+          ),
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.access_time,
+                      size: 14,
+                      color: AppTheme.primaryGreen,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      readTime,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.primaryGreen,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  excerpt,
+                  style: TextStyle(
+                    color: AppTheme.primaryDark.withValues(alpha: 0.6),
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                TextButton(
+                  onPressed: () {},
+                  style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                  child: const Row(
+                    children: [
+                      Text('Leer más'),
+                      SizedBox(width: 8),
+                      Icon(Icons.arrow_forward_rounded, size: 16),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

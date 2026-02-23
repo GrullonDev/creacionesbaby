@@ -1,6 +1,7 @@
 import 'package:creacionesbaby/config/app_theme.dart';
 import 'package:creacionesbaby/core/models/product_model.dart';
 import 'package:creacionesbaby/core/providers/cart_provider.dart';
+import 'package:creacionesbaby/core/widgets/store_app_bar.dart';
 import 'package:creacionesbaby/features/store/cart/presentation/pages/mini_cart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -87,29 +88,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       key: _scaffoldKey,
       endDrawer: const MiniCart(), // Attach MiniCart Drawer
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text(
-          'Creaciones Baby',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: AppTheme.primaryDark,
-          ),
-        ),
-        actions: [
-          IconButton(icon: const Icon(Icons.search), onPressed: () {}),
-          Consumer<CartProvider>(
-            builder: (context, cart, _) => Badge(
-              label: Text('${cart.itemCount}'),
-              isLabelVisible: cart.itemCount > 0,
-              child: IconButton(
-                icon: const Icon(Icons.shopping_cart_outlined),
-                onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-        ],
-      ),
+      appBar: StoreAppBar(scaffoldKey: _scaffoldKey),
       body: Builder(
         builder: (context) {
           return Stack(

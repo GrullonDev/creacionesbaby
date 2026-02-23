@@ -2,6 +2,7 @@ import 'package:creacionesbaby/config/app_theme.dart';
 import 'package:creacionesbaby/core/models/product_model.dart';
 import 'package:creacionesbaby/core/providers/cart_provider.dart';
 import 'package:creacionesbaby/core/providers/product_provider.dart';
+import 'package:creacionesbaby/core/widgets/store_app_bar.dart';
 import 'package:creacionesbaby/features/store/cart/presentation/pages/mini_cart.dart';
 import 'package:creacionesbaby/features/store/catalog/presentation/pages/product_detail_page.dart';
 import 'package:creacionesbaby/features/store/home/presentation/pages/help_center_page.dart';
@@ -41,26 +42,7 @@ class _CatalogPageState extends State<CatalogPage> {
     return Scaffold(
       endDrawer: const MiniCart(),
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text(
-          'Catálogo',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          Consumer<CartProvider>(
-            builder: (context, cart, _) => Badge(
-              label: Text('${cart.itemCount}'),
-              isLabelVisible: cart.itemCount > 0,
-              backgroundColor: AppTheme.primaryGreen,
-              child: IconButton(
-                icon: const Icon(Icons.shopping_cart_outlined),
-                onPressed: () => Scaffold.of(context).openEndDrawer(),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-        ],
-      ),
+      appBar: const StoreAppBar(),
       body: Column(
         children: [
           _buildSecondaryHeader(context),

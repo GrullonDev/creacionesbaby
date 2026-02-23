@@ -43,41 +43,41 @@ class AppTheme {
         onSecondary: Colors.white,
         surfaceContainerHighest: backgroundSoft,
       ),
-      textTheme: GoogleFonts.outfitTextTheme().copyWith(
-        displayLarge: GoogleFonts.outfit(
+      textTheme: GoogleFonts.poppinsTextTheme().copyWith(
+        displayLarge: GoogleFonts.poppins(
           fontSize: 48,
           fontWeight: FontWeight.w800,
           color: primaryDark,
           height: 1.1,
           letterSpacing: -1,
         ),
-        displayMedium: GoogleFonts.outfit(
+        displayMedium: GoogleFonts.poppins(
           fontSize: 36,
           fontWeight: FontWeight.bold,
           color: primaryDark,
           letterSpacing: -0.5,
         ),
-        displaySmall: GoogleFonts.outfit(
+        displaySmall: GoogleFonts.poppins(
           fontSize: 28,
           fontWeight: FontWeight.bold,
           color: primaryDark,
         ),
-        titleLarge: GoogleFonts.outfit(
+        titleLarge: GoogleFonts.poppins(
           fontSize: 22,
           fontWeight: FontWeight.w600,
           color: primaryDark,
         ),
-        bodyLarge: GoogleFonts.inter(
+        bodyLarge: GoogleFonts.poppins(
           fontSize: 16,
           color: primaryDark.withValues(alpha: 0.8),
           height: 1.5,
         ),
-        bodyMedium: GoogleFonts.inter(
+        bodyMedium: GoogleFonts.poppins(
           fontSize: 14,
           color: primaryDark.withValues(alpha: 0.7),
           height: 1.5,
         ),
-        labelLarge: GoogleFonts.inter(
+        labelLarge: GoogleFonts.poppins(
           fontWeight: FontWeight.w600,
           fontSize: 14,
           letterSpacing: 0.5,
@@ -104,7 +104,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          textStyle: GoogleFonts.inter(
+          textStyle: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
             fontSize: 15,
             letterSpacing: 0.5,
@@ -122,7 +122,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          textStyle: GoogleFonts.inter(
+          textStyle: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
             fontSize: 15,
           ),
