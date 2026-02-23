@@ -212,7 +212,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      color: Colors.grey[50],
+      color: AppTheme.backgroundSoft.withValues(alpha: 0.5),
       child: Row(
         children: [
           Text(
@@ -232,7 +232,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               style: const TextStyle(
                 color: Colors.black87,
                 fontSize: 13,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.bold,
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -254,6 +254,16 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   Widget _buildImageGallery() {
+    // Determine category color for the background
+    Color catColor = AppTheme.backgroundSoft;
+    final cat = widget.product.category?.toLowerCase() ?? '';
+    if (cat.contains('niña')) {
+      catColor = AppTheme.girlPink;
+    } else if (cat.contains('niño'))
+      catColor = AppTheme.boyBlue;
+    else if (cat.contains('unisex'))
+      catColor = AppTheme.unisexYellow;
+
     // Use all product images from imageUrls
     final images = widget.product.imageUrls.isNotEmpty
         ? widget.product.imageUrls
@@ -318,7 +328,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 height: 500,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF8F5F2),
+                  color: catColor.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: ClipRRect(
