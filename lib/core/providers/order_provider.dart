@@ -9,10 +9,12 @@ class OrderProvider extends ChangeNotifier {
   List<OrderModel> _orders = [];
   bool _isLoading = false;
   String? _error;
+  String? _lastCreatedOrderId;
 
   List<OrderModel> get orders => _orders;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  String? get lastCreatedOrderId => _lastCreatedOrderId;
 
   OrderProvider() {
     fetchOrders(); // Initial fetch
@@ -71,6 +73,7 @@ class OrderProvider extends ChangeNotifier {
           .single();
 
       final orderId = orderResponse['id'] as String;
+      _lastCreatedOrderId = orderId;
 
       // 2. Create order items
       final itemsData = cartItems.map((item) {

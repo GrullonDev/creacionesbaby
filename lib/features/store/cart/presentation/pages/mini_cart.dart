@@ -1,7 +1,10 @@
+import 'package:creacionesbaby/config/app_theme.dart';
 import 'package:creacionesbaby/core/providers/cart_provider.dart';
 import 'package:creacionesbaby/core/providers/product_provider.dart';
 import 'package:flutter/services.dart';
 import 'package:creacionesbaby/core/providers/order_provider.dart';
+import 'package:creacionesbaby/features/store/cart/presentation/pages/order_success_page.dart';
+import 'package:creacionesbaby/utils/page_transitions.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -304,7 +307,7 @@ class MiniCart extends StatelessWidget {
                                       IconButton(
                                         icon: const Icon(
                                           Icons.add_circle_outline,
-                                          color: Colors.blue,
+                                          color: AppTheme.primaryGreen,
                                         ),
                                         onPressed: () {
                                           final success = cart.addItem(product);
@@ -392,7 +395,7 @@ class MiniCart extends StatelessWidget {
                                 );
                               },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0F172A),
+                          backgroundColor: AppTheme.primaryDark,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
@@ -480,12 +483,20 @@ class _CheckoutPageState extends State<CheckoutPage> {
       );
 
       if (success) {
+        final items = List.from(cartProvider.items);
+        final orderIdValue = orderProvider
+            .lastCreatedOrderId; // Assuming this exists or using a random one
         cartProvider.clearCart();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('¡Pedido realizado con éxito!')),
+          Navigator.pushReplacement(
+            context,
+            SmoothPageRoute(
+              page: OrderSuccessPage(
+                orderId: orderIdValue ?? 'ABC-123',
+                items: items,
+              ),
+            ),
           );
-          Navigator.pop(context); // Go back to start
         }
       } else {
         if (mounted) {
@@ -606,7 +617,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     child: ElevatedButton(
                       onPressed: isLoading ? null : _submitOrder,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF3B82F6),
+                        backgroundColor: AppTheme.primaryGreen,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 24),
                         textStyle: const TextStyle(

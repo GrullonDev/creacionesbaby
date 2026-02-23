@@ -1,3 +1,4 @@
+import 'package:creacionesbaby/config/app_theme.dart';
 import 'package:creacionesbaby/core/providers/app_config_provider.dart';
 import 'package:creacionesbaby/core/providers/cart_provider.dart';
 import 'package:creacionesbaby/core/providers/product_provider.dart';
@@ -74,12 +75,15 @@ class _StoreHomePageState extends State<StoreHomePage> {
         child: Column(
           children: [
             _buildHeroSection(context),
-            _buildFeaturesBar(context),
-            const SizedBox(height: 40),
-            _buildGrowthStages(context),
+            _buildGenderCategories(context),
+            _buildValuesSection(context),
+            _buildArtSection(context),
+            _buildFounderSection(context),
+            _buildCommitmentSection(context),
             const SizedBox(height: 40),
             _buildTrendingSection(context),
-            const SizedBox(height: 40),
+            const SizedBox(height: 80),
+            _buildNewsletterSection(context),
             _buildFooter(context),
           ],
         ),
@@ -88,61 +92,56 @@ class _StoreHomePageState extends State<StoreHomePage> {
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
-    final isWide = MediaQuery.of(context).size.width > 800;
+    final isWide = MediaQuery.of(context).size.width > 900;
     return AppBar(
-      title: Row(
-        children: [
-          const Text(
-            'Creaciones Baby',
-            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 22),
-          ),
-          if (isWide) ...[
-            const SizedBox(width: 40),
-            Expanded(
-              child: Container(
-                height: 45,
-                constraints: const BoxConstraints(maxWidth: 500),
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Buscar productos para bebé...',
-                    prefixIcon: const Icon(Icons.search, size: 20),
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
+      title: Padding(
+        padding: EdgeInsets.symmetric(horizontal: isWide ? 40 : 0),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.child_care,
+              color: AppTheme.primaryGreen,
+              size: 28,
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              'Creaciones Baby',
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                fontSize: 22,
+                color: AppTheme.primaryDark,
               ),
             ),
-          ] else
-            const Spacer(),
-        ],
+            if (isWide) ...[
+              const SizedBox(width: 60),
+              _navItem(context, 'Niña', false, dotColor: AppTheme.girlPink),
+              _navItem(context, 'Niño', false, dotColor: AppTheme.boyBlue),
+              _navItem(
+                context,
+                'Unisex',
+                false,
+                dotColor: AppTheme.unisexYellow,
+              ),
+              _navItem(context, 'Historia', false),
+              _navItem(context, 'Contacto', false),
+            ],
+          ],
+        ),
       ),
       actions: [
-        if (isWide) ...[
-          TextButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                SmoothPageRoute(page: const CatalogPage()),
-              );
-            },
-            child: const Text(
-              'Catálogo',
-              style: TextStyle(color: Colors.black87),
-            ),
+        if (!isWide)
+          IconButton(icon: const Icon(Icons.search), onPressed: () {})
+        else
+          IconButton(
+            icon: const Icon(Icons.search, size: 20),
+            onPressed: () {},
           ),
-          const SizedBox(width: 16),
-        ],
         Consumer<CartProvider>(
           builder: (context, cart, child) {
             return Badge(
               label: Text('${cart.itemCount}'),
               isLabelVisible: cart.itemCount > 0,
-              backgroundColor: Theme.of(context).primaryColor,
+              backgroundColor: AppTheme.primaryGreen,
               child: IconButton(
                 icon: const Icon(Icons.shopping_cart_outlined),
                 onPressed: () => Scaffold.of(context).openEndDrawer(),
@@ -150,319 +149,688 @@ class _StoreHomePageState extends State<StoreHomePage> {
             );
           },
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 40),
       ],
+    );
+  }
+
+  Widget _navItem(
+    BuildContext context,
+    String title,
+    bool isActive, {
+    VoidCallback? onTap,
+    Color? dotColor,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 32),
+      child: InkWell(
+        onTap: onTap ?? () {},
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (dotColor != null) ...[
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: dotColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
+            Text(
+              title,
+              style: TextStyle(
+                color: isActive
+                    ? AppTheme.primaryGreen
+                    : AppTheme.primaryDark.withValues(alpha: 0.6),
+                fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildHeroSection(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isMobile = screenWidth < 600;
-
-    return Consumer<AppConfigProvider>(
-      builder: (context, config, _) {
-        List<String> displayImages = [];
-        if (config.bannerImageUrls.isNotEmpty) {
-          displayImages = config.bannerImageUrls;
-        } else if (config.bannerImageUrl != null) {
-          displayImages = [config.bannerImageUrl!];
-        }
-
-        if (displayImages.isEmpty) {
-          return const SizedBox.shrink();
-        }
-
-        return SizedBox(
-          height: isMobile ? 400 : 600,
-          width: double.infinity,
-          child: Stack(
-            children: [
-              PageView.builder(
-                controller: _pageController,
-                itemCount: displayImages.length,
-                onPageChanged: (index) {
-                  setState(() {
-                    _currentHeroPage = index;
-                  });
-                },
-                itemBuilder: (context, index) {
-                  return Image.network(
-                    displayImages[index],
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(color: Colors.grey[200]);
-                    },
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                              : null,
-                          color: Colors.white,
-                        ),
-                      );
-                    },
-                  );
-                },
+    final isWide = MediaQuery.of(context).size.width > 900;
+    return Container(
+      width: double.infinity,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: AppTheme.pastelGreen.withValues(alpha: 0.2),
+      ),
+      child: Stack(
+        children: [
+          if (isWide) ...[
+            Positioned(
+              left: -30,
+              top: -30,
+              child: _decorativeCircle(
+                180,
+                AppTheme.girlPink.withValues(alpha: 0.15),
               ),
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withValues(alpha: 0.2),
-                      Colors.black.withValues(alpha: 0.5),
-                    ],
-                  ),
-                ),
+            ),
+            Positioned(
+              right: 150,
+              bottom: -50,
+              child: _decorativeCircle(
+                220,
+                AppTheme.boyBlue.withValues(alpha: 0.15),
               ),
-              Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 24),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Seguridad en la que confías,\ncomodidad que ellos aman',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: isMobile ? 28 : 48,
-                          fontWeight: FontWeight.bold,
-                          height: 1.1,
-                          shadows: const [
-                            Shadow(
-                              blurRadius: 10.0,
-                              color: Colors.black45,
-                              offset: Offset(2.0, 2.0),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Esenciales premium diseñados para el desarrollo de tu bebé.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: isMobile ? 14 : 18,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            SmoothPageRoute(page: const CatalogPage()),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: isMobile ? 24 : 32,
-                            vertical: isMobile ? 14 : 20,
-                          ),
-                          textStyle: TextStyle(
-                            fontSize: isMobile ? 14 : 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        child: const Text('VER COLECCIÓN'),
-                      ),
-                    ],
-                  ),
-                ),
+            ),
+            Positioned(
+              left: 300,
+              bottom: 40,
+              child: _decorativeCircle(
+                80,
+                AppTheme.unisexYellow.withValues(alpha: 0.2),
               ),
-              Positioned(
-                bottom: 30,
-                left: 0,
-                right: 0,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(displayImages.length, (index) {
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      width: _currentHeroPage == index ? 24 : 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: _currentHeroPage == index
-                            ? Colors.white
-                            : Colors.white.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    );
-                  }),
-                ),
+            ),
+          ],
+          Center(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 1400),
+              padding: EdgeInsets.symmetric(
+                horizontal: isWide ? 80 : 24,
+                vertical: isWide ? 80 : 40,
               ),
-            ],
+              child: isWide
+                  ? Row(
+                      children: [
+                        Expanded(child: _buildHeroText(context, true)),
+                        const SizedBox(width: 60),
+                        Expanded(child: _buildHeroImage()),
+                      ],
+                    )
+                  : Column(
+                      children: [
+                        _buildHeroText(context, false),
+                        const SizedBox(height: 40),
+                        _buildHeroImage(),
+                      ],
+                    ),
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
-  Widget _buildFeaturesBar(BuildContext context) {
+  Widget _decorativeCircle(double size, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+      width: size,
+      height: size,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    );
+  }
+
+  Widget _buildHeroText(BuildContext context, bool isWide) {
+    return Column(
+      crossAxisAlignment: isWide
+          ? CrossAxisAlignment.start
+          : CrossAxisAlignment.center,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryGreen.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: const Text(
+            'DESDE 2015',
+            style: TextStyle(
+              color: AppTheme.primaryGreen,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+              letterSpacing: 1.2,
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        RichText(
+          textAlign: isWide ? TextAlign.left : TextAlign.center,
+          text: TextSpan(
+            style: Theme.of(
+              context,
+            ).textTheme.displayLarge?.copyWith(fontSize: isWide ? 56 : 36),
+            children: const [
+              TextSpan(text: 'Nuestra Historia:\n'),
+              TextSpan(
+                text: 'Tejida con Amor y Propósito',
+                style: TextStyle(color: AppTheme.primaryGreen),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        Text(
+          'Creaciones Baby nació en 2015 del deseo de una madre de vestir a sus hijos con la suavidad de un abrazo y la pureza de lo natural. Lo que comenzó como un pequeño taller familiar, hoy es una comunidad dedicada a acompañar a padres en la maravillosa aventura de ver crecer a sus pequeños.',
+          textAlign: isWide ? TextAlign.left : TextAlign.center,
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            color: AppTheme.primaryDark.withValues(alpha: 0.6),
+            height: 1.6,
+          ),
+        ),
+        const SizedBox(height: 40),
+        ElevatedButton.icon(
+          onPressed: () {
+            Navigator.push(context, SmoothPageRoute(page: const CatalogPage()));
+          },
+          icon: const Icon(Icons.arrow_forward, size: 18),
+          label: const Text('Explorar Colección'),
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 22),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeroImage() {
+    return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Colors.grey[100]!)),
+        color: AppTheme.primaryGreen,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryGreen.withValues(alpha: 0.3),
+            blurRadius: 40,
+            offset: const Offset(0, 20),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          Image.network(
+            'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?q=80&w=1200&auto=format&fit=crop',
+            fit: BoxFit.cover,
+            height: 500,
+            width: double.infinity,
+          ),
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(24),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildValuesSection(BuildContext context) {
+    final isWide = MediaQuery.of(context).size.width > 900;
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 80, horizontal: isWide ? 80 : 24),
+      color: Colors.white,
+      child: Column(
+        children: [
+          Text(
+            'Valores que nos definen',
+            style: Theme.of(context).textTheme.displaySmall,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Cada hilo y cada botón en Creaciones Baby está pensado para el bienestar de los más pequeños y el futuro de nuestro planeta.',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 60),
+          Wrap(
+            spacing: 30,
+            runSpacing: 30,
+            alignment: WrapAlignment.center,
+            children: [
+              _valueCard(
+                context,
+                Icons.eco_rounded,
+                'Sostenibilidad',
+                'Utilizamos materiales orgánicos y procesos de producción responsables para cuidar el mundo que heredarán.',
+              ),
+              _valueCard(
+                context,
+                Icons.auto_awesome_rounded,
+                'Calidad Artesanal',
+                'Fusionamos técnicas tradicionales de tejido con diseños contemporáneos, garantizando prendas únicas y duraderas.',
+              ),
+              _valueCard(
+                context,
+                Icons.verified_user_rounded,
+                'Seguridad Total',
+                'Telas hipoalergénicas certificadas que respetan la delicada piel de los bebés, desde recién nacidos hasta los 3 años.',
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _valueCard(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String description,
+  ) {
+    return Container(
+      width: 350,
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: AppTheme.backgroundSoft,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.primaryDark.withValues(alpha: 0.05)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 10,
+                ),
+              ],
+            ),
+            child: Icon(icon, color: AppTheme.primaryGreen, size: 24),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            description,
+            style: TextStyle(
+              color: AppTheme.primaryDark.withValues(alpha: 0.6),
+              height: 1.6,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildArtSection(BuildContext context) {
+    final isWide = MediaQuery.of(context).size.width > 900;
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 80, horizontal: isWide ? 80 : 24),
+      child: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: isWide
+              ? Row(
+                  children: [
+                    Expanded(child: _buildArtImages()),
+                    const SizedBox(width: 80),
+                    Expanded(child: _buildArtText(context)),
+                  ],
+                )
+              : Column(
+                  children: [
+                    _buildArtImages(),
+                    const SizedBox(height: 60),
+                    _buildArtText(context),
+                  ],
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildArtImages() {
+    return SizedBox(
+      height: 400,
+      child: Stack(
+        children: [
+          Positioned(
+            left: 0,
+            top: 0,
+            child: Container(
+              width: 300,
+              height: 350,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                image: const DecorationImage(
+                  image: NetworkImage(
+                    'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=600',
+                  ),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            right: 20,
+            bottom: 0,
+            child: Container(
+              width: 250,
+              height: 250,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white, width: 8),
+                image: const DecorationImage(
+                  image: NetworkImage(
+                    'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?q=80&w=600',
+                  ),
+                  fit: BoxFit.cover,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 30,
+                    offset: const Offset(0, 15),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildArtText(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'El Arte detrás de cada Prenda',
+          style: Theme.of(context).textTheme.displaySmall,
+        ),
+        const SizedBox(height: 24),
+        Text(
+          'No solo fabricamos ropa, creamos legados. Nuestro proceso comienza con la selección del mejor Algodón Pima, reconocido mundialmente por su suavidad excepcional y resistencia.',
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+        const SizedBox(height: 32),
+        _artFeature(
+          Icons.check_circle_rounded,
+          'Selección de Fibras',
+          'Solo hilos naturales que permiten la transpiración de la piel.',
+        ),
+        _artFeature(
+          Icons.check_circle_rounded,
+          'Confección Lenta (Slow Fashion)',
+          'Respetamos los tiempos de producción para asegurar acabados perfectos.',
+        ),
+        _artFeature(
+          Icons.check_circle_rounded,
+          'Control de Pureza',
+          'Cada prenda es revisada minuciosamente antes de llegar a tus manos.',
+        ),
+      ],
+    );
+  }
+
+  Widget _artFeature(IconData icon, String title, String subtitle) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: AppTheme.primaryGreen, size: 22),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    color: AppTheme.primaryDark.withValues(alpha: 0.6),
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFounderSection(BuildContext context) {
+    final isWide = MediaQuery.of(context).size.width > 900;
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 80, horizontal: isWide ? 80 : 24),
+      decoration: BoxDecoration(
+        color: AppTheme.pastelPink.withValues(alpha: 0.2),
       ),
       child: Center(
-        child: Wrap(
-          spacing: 60,
-          runSpacing: 20,
-          alignment: WrapAlignment.center,
-          children: [
-            _featureItem(
-              Icons.local_shipping_outlined,
-              'Envío a Domicilio',
-              'En toda Guatemala',
-            ),
-            _featureItem(
-              Icons.verified_outlined,
-              'Calidad Garantizada',
-              'Productos certificados',
-            ),
-            _featureItem(
-              Icons.assignment_return_outlined,
-              'Devoluciones Fáciles',
-              '30 días de garantía',
-            ),
-            _featureItem(
-              Icons.eco_outlined,
-              'Materiales Seguros',
-              'Hipoalergénicos para bebé',
-            ),
-          ],
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 1000),
+          padding: const EdgeInsets.all(40),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.pink.withValues(alpha: 0.05),
+                blurRadius: 40,
+                offset: const Offset(0, 20),
+              ),
+            ],
+          ),
+          child: isWide
+              ? Row(
+                  children: [
+                    _buildFounderPhoto(),
+                    const SizedBox(width: 60),
+                    Expanded(child: _buildFounderQuote(context)),
+                  ],
+                )
+              : Column(
+                  children: [
+                    _buildFounderPhoto(),
+                    const SizedBox(height: 40),
+                    _buildFounderQuote(context),
+                  ],
+                ),
         ),
       ),
     );
   }
 
-  Widget _featureItem(IconData icon, String title, String subtitle) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, color: Colors.blue, size: 28),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-            ),
-            Text(
-              subtitle,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildGrowthStages(BuildContext context) {
-    return Column(
-      children: [
-        const Text(
-          'Compra por Etapa',
-          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Productos adaptados para cada momento especial',
-          style: TextStyle(color: Colors.grey, fontSize: 16),
-        ),
-        const SizedBox(height: 48),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Row(
-            children: [
-              _stageCard(
-                'Recién Nacido',
-                '0-6 Meses',
-                'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=600&auto=format&fit=crop', // Minimalist
-              ),
-              const SizedBox(width: 24),
-              _stageCard(
-                'Infante',
-                '6-18 Meses',
-                'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?q=80&w=600&auto=format&fit=crop', // Minimalist
-              ),
-              const SizedBox(width: 24),
-              _stageCard(
-                'Niño Pequeño',
-                '18-36 Meses',
-                'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?q=80&w=600&auto=format&fit=crop', // Minimalist
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _stageCard(String title, String subtitle, String imageUrl) {
+  Widget _buildFounderPhoto() {
     return Container(
-      width: 300,
-      height: 380,
+      width: 200,
+      height: 200,
       decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(16),
-        image: DecorationImage(
-          image: NetworkImage(imageUrl),
+        color: AppTheme.backgroundSoft,
+        borderRadius: BorderRadius.circular(20),
+        image: const DecorationImage(
+          image: NetworkImage(
+            'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400',
+          ),
           fit: BoxFit.cover,
         ),
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.transparent, Colors.black.withValues(alpha: 0.7)],
-          ),
-        ),
-        padding: const EdgeInsets.all(24),
-        alignment: Alignment.bottomLeft,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+    );
+  }
+
+  Widget _buildFounderQuote(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
           children: [
-            Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+            const Icon(
+              Icons.format_quote_rounded,
+              color: AppTheme.primaryGreen,
+              size: 40,
             ),
+            const Spacer(),
             Text(
-              subtitle,
-              style: const TextStyle(color: Colors.white70, fontSize: 14),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Explorar Productos →',
+              'Un Mensaje de nuestra Fundadora',
               style: TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+                color: AppTheme.primaryDark.withValues(alpha: 0.4),
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                letterSpacing: 1.2,
               ),
             ),
           ],
         ),
+        const SizedBox(height: 16),
+        Text(
+          '"Como madre, entiendo que cada detalle cuenta. Creaciones Baby nació del deseo de ofrecer a mis hijos lo mejor de nuestras tradiciones textiles con un toque moderno. Hoy nos enorgullece vestir a miles de bebés con esta misma filosofía de amor, calidad y respeto por su piel sensible."',
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            fontStyle: FontStyle.italic,
+            fontSize: 18,
+            color: AppTheme.primaryDark,
+          ),
+        ),
+        const SizedBox(height: 24),
+        const Text(
+          'Elena Rodríguez',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        Text(
+          'Fundadora & Directora Creativa',
+          style: TextStyle(
+            color: AppTheme.primaryDark.withValues(alpha: 0.5),
+            fontSize: 14,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCommitmentSection(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 100, horizontal: 24),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppTheme.pastelGreen,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.workspace_premium_rounded,
+              color: AppTheme.primaryGreen,
+              size: 40,
+            ),
+          ),
+          const SizedBox(height: 32),
+          Text(
+            'Nuestro Compromiso de Calidad',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.displaySmall,
+          ),
+          const SizedBox(height: 16),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: const Text(
+              'Garantizamos que cada pieza que sale de nuestro taller es segura, cómoda y está diseñada para durar y pasar de generación en generación.',
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 60),
+          Wrap(
+            spacing: 40,
+            runSpacing: 20,
+            alignment: WrapAlignment.center,
+            children: [
+              _commitmentItem(Icons.eco_outlined, '100% Algodón Orgánico'),
+              _commitmentItem(Icons.local_shipping_outlined, 'Envío Seguro'),
+              _commitmentItem(Icons.favorite_border_rounded, 'Hecho a Mano'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _commitmentItem(IconData icon, String text) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: AppTheme.primaryGreen, size: 24),
+        const SizedBox(width: 12),
+        Text(
+          text,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNewsletterSection(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 24),
+      color: AppTheme.pastelGreen,
+      width: double.infinity,
+      child: Column(
+        children: [
+          const Text(
+            'Únete a nuestra familia',
+            style: TextStyle(
+              color: AppTheme.primaryDark,
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Recibe noticias de nuestras nuevas colecciones y consejos sobre el cuidado de tu bebé.',
+            style: TextStyle(color: AppTheme.primaryMedium, fontSize: 16),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 40),
+          Container(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Tu correo electrónico',
+                      fillColor: Colors.white,
+                      hintStyle: TextStyle(
+                        color: AppTheme.primaryDark.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    style: const TextStyle(color: AppTheme.primaryDark),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                ElevatedButton(
+                  onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryGreen,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('SUSCRIBIR'),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -588,8 +956,8 @@ class _StoreHomePageState extends State<StoreHomePage> {
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
                                     color: product.stock > 0
-                                        ? Colors.green[600]
-                                        : Colors.red[600],
+                                        ? AppTheme.primaryGreen
+                                        : Colors.red[300],
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -660,7 +1028,7 @@ class _StoreHomePageState extends State<StoreHomePage> {
   Widget _buildFooter(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 768;
     return Container(
-      color: const Color(0xFF0F172A),
+      color: AppTheme.primaryDark,
       child: Column(
         children: [
           Padding(
@@ -902,6 +1270,132 @@ class _StoreHomePageState extends State<StoreHomePage> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGenderCategories(BuildContext context) {
+    final isWide = MediaQuery.of(context).size.width > 900;
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 60, horizontal: isWide ? 80 : 24),
+      decoration: const BoxDecoration(color: Colors.white),
+      child: Column(
+        children: [
+          Text(
+            'Explora por Colección',
+            style: Theme.of(context).textTheme.displaySmall,
+          ),
+          const SizedBox(height: 48),
+          isWide
+              ? Row(
+                  children: [
+                    Expanded(
+                      child: _categoryCard(
+                        context,
+                        'Niña',
+                        AppTheme.girlPink,
+                        Icons.favorite_rounded,
+                      ),
+                    ),
+                    const SizedBox(width: 32),
+                    Expanded(
+                      child: _categoryCard(
+                        context,
+                        'Niño',
+                        AppTheme.boyBlue,
+                        Icons.directions_car_rounded,
+                      ),
+                    ),
+                    const SizedBox(width: 32),
+                    Expanded(
+                      child: _categoryCard(
+                        context,
+                        'Unisex',
+                        AppTheme.unisexYellow,
+                        Icons.auto_awesome_rounded,
+                      ),
+                    ),
+                  ],
+                )
+              : Column(
+                  children: [
+                    _categoryCard(
+                      context,
+                      'Niña',
+                      AppTheme.girlPink,
+                      Icons.favorite_rounded,
+                    ),
+                    const SizedBox(height: 20),
+                    _categoryCard(
+                      context,
+                      'Niño',
+                      AppTheme.boyBlue,
+                      Icons.directions_car_rounded,
+                    ),
+                    const SizedBox(height: 20),
+                    _categoryCard(
+                      context,
+                      'Unisex',
+                      AppTheme.unisexYellow,
+                      Icons.auto_awesome_rounded,
+                    ),
+                  ],
+                ),
+        ],
+      ),
+    );
+  }
+
+  Widget _categoryCard(
+    BuildContext context,
+    String title,
+    Color color,
+    IconData icon,
+  ) {
+    return Container(
+      height: 180,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.25),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: color.withValues(alpha: 0.4), width: 3),
+      ),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(context, SmoothPageRoute(page: const CatalogPage()));
+        },
+        borderRadius: BorderRadius.circular(30),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.6),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 44, color: color.withValues(alpha: 0.9)),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.primaryDark,
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Ver colección',
+              style: TextStyle(
+                fontSize: 14,
+                color: AppTheme.primaryDark.withValues(alpha: 0.6),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
       ),
     );

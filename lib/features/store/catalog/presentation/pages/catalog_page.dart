@@ -1,3 +1,4 @@
+import 'package:creacionesbaby/config/app_theme.dart';
 import 'package:creacionesbaby/core/models/product_model.dart';
 import 'package:creacionesbaby/core/providers/cart_provider.dart';
 import 'package:creacionesbaby/core/providers/product_provider.dart';
@@ -53,7 +54,7 @@ class _CatalogPageState extends State<CatalogPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       endDrawer: const MiniCart(),
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.backgroundSoft,
       appBar: AppBar(
         title: const Text(
           'Catálogo',
@@ -374,7 +375,9 @@ class _ProductCardState extends State<_ProductCard> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: _isHovered ? Colors.blue[300]! : Colors.transparent,
+              color: _isHovered
+                  ? AppTheme.primaryGreen.withValues(alpha: 0.1)
+                  : Colors.transparent,
             ),
             boxShadow: [
               BoxShadow(
@@ -465,7 +468,9 @@ class _ProductCardState extends State<_ProductCard> {
                               },
                               child: Container(
                                 color: widget.product.stock > 0
-                                    ? Colors.blue.withValues(alpha: 0.9)
+                                    ? AppTheme.primaryGreen.withValues(
+                                        alpha: 0.9,
+                                      )
                                     : Colors.grey.withValues(alpha: 0.9),
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 12,
@@ -631,7 +636,7 @@ class _SkeletonCardState extends State<_SkeletonCard>
                 flex: 3,
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.grey[300]!.withValues(
+                    color: AppTheme.backgroundSoft.withValues(
                       alpha: _animation.value,
                     ),
                     borderRadius: const BorderRadius.vertical(
@@ -662,7 +667,7 @@ class _SkeletonCardState extends State<_SkeletonCard>
                         height: 16,
                         width: 100,
                         decoration: BoxDecoration(
-                          color: Colors.grey[300]!.withValues(
+                          color: AppTheme.backgroundSoft.withValues(
                             alpha: _animation.value,
                           ),
                           borderRadius: BorderRadius.circular(4),

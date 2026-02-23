@@ -1,3 +1,4 @@
+import 'package:creacionesbaby/config/app_theme.dart';
 import 'package:creacionesbaby/core/models/product_model.dart';
 import 'package:creacionesbaby/core/providers/cart_provider.dart';
 import 'package:creacionesbaby/features/store/cart/presentation/pages/mini_cart.dart';
@@ -87,10 +88,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       endDrawer: const MiniCart(), // Attach MiniCart Drawer
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Tienda'),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: false,
+        title: const Text(
+          'Creaciones Baby',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: AppTheme.primaryDark,
+          ),
+        ),
         actions: [
           IconButton(icon: const Icon(Icons.search), onPressed: () {}),
           Consumer<CartProvider>(
@@ -103,7 +107,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               ),
             ),
           ),
-          IconButton(icon: const Icon(Icons.person_outline), onPressed: () {}),
           const SizedBox(width: 16),
         ],
       ),
@@ -172,8 +175,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           ],
                           Text(
                             'Q${widget.product.price.toStringAsFixed(2)}',
-                            style: TextStyle(
-                              color: Theme.of(context).primaryColor,
+                            style: const TextStyle(
+                              color: AppTheme.primaryGreen,
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
                             ),
@@ -184,7 +187,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                 ? _addToCart
                                 : null,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF3B82F6),
+                              backgroundColor: AppTheme.primaryGreen,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 24,
@@ -438,7 +441,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           style: const TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF3B82F6), // Blue
+            color: AppTheme.primaryGreen,
           ),
         ),
         const SizedBox(height: 24),
@@ -495,11 +498,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   vertical: 10,
                 ),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFFE0F2FE) : Colors.white,
+                  color: isSelected
+                      ? AppTheme.pastelGreen.withValues(alpha: 0.3)
+                      : Colors.white,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: isSelected
-                        ? const Color(0xFF3B82F6)
+                        ? AppTheme.primaryGreen
                         : Colors.grey[300]!,
                     width: isSelected ? 2 : 1,
                   ),
@@ -508,9 +513,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   _designs[index],
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: isSelected
-                        ? const Color(0xFF3B82F6)
-                        : Colors.black87,
+                    color: isSelected ? AppTheme.primaryGreen : Colors.black87,
                   ),
                 ),
               ),
@@ -542,11 +545,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFFE0F2FE) : Colors.white,
+                  color: isSelected
+                      ? AppTheme.pastelGreen.withValues(alpha: 0.3)
+                      : Colors.white,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: isSelected
-                        ? const Color(0xFF3B82F6)
+                        ? AppTheme.primaryGreen
                         : Colors.grey[300]!,
                     width: isSelected ? 2 : 1,
                   ),
@@ -555,9 +560,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   size,
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: isSelected
-                        ? const Color(0xFF3B82F6)
-                        : Colors.black87,
+                    color: isSelected ? AppTheme.primaryGreen : Colors.black87,
                   ),
                 ),
               ),
@@ -607,7 +610,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 icon: const Icon(Icons.shopping_bag_outlined),
                 label: const Text('Agregar al Carrito'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF3B82F6), // Brand Blue
+                  backgroundColor: AppTheme.primaryGreen,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   shape: RoundedRectangleBorder(
@@ -626,7 +629,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               child: ElevatedButton(
                 onPressed: () {},
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0F172A), // Dark Slate
+                  backgroundColor: AppTheme.primaryDark,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   shape: RoundedRectangleBorder(
@@ -743,7 +746,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
-                  color: Color(0xFF3B82F6),
+                  color: AppTheme.primaryGreen,
                 ),
               ),
             ],
@@ -754,7 +757,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               padding: const EdgeInsets.only(bottom: 8),
               child: Row(
                 children: [
-                  const Icon(Icons.check_circle, size: 16, color: Colors.green),
+                  const Icon(
+                    Icons.check_circle,
+                    size: 16,
+                    color: AppTheme.primaryGreen,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -990,7 +997,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                   'Compra Verificada',
                                   style: TextStyle(
                                     fontSize: 10,
-                                    color: Colors.green[700],
+                                    color: AppTheme.primaryGreen,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -1115,7 +1122,7 @@ class _FeatureIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: Colors.green),
+        Icon(icon, size: 20, color: AppTheme.primaryGreen),
         const SizedBox(width: 8),
         Text(
           label,
