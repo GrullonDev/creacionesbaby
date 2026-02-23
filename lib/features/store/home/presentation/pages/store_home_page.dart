@@ -6,6 +6,8 @@ import 'dart:async';
 import 'package:creacionesbaby/features/store/catalog/presentation/pages/catalog_page.dart';
 import 'package:creacionesbaby/features/store/cart/presentation/pages/mini_cart.dart';
 import 'package:creacionesbaby/features/store/catalog/presentation/pages/product_detail_page.dart';
+import 'package:creacionesbaby/features/store/home/presentation/pages/contact_page.dart';
+import 'package:creacionesbaby/features/store/home/presentation/pages/help_center_page.dart';
 import 'package:creacionesbaby/utils/page_transitions.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -114,16 +116,41 @@ class _StoreHomePageState extends State<StoreHomePage> {
             ),
             if (isWide) ...[
               const SizedBox(width: 60),
-              _navItem(context, 'Niña', false, dotColor: AppTheme.girlPink),
-              _navItem(context, 'Niño', false, dotColor: AppTheme.boyBlue),
               _navItem(
                 context,
-                'Unisex',
+                'Shop',
                 false,
-                dotColor: AppTheme.unisexYellow,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    SmoothPageRoute(page: const CatalogPage()),
+                  );
+                },
               ),
-              _navItem(context, 'Historia', false),
-              _navItem(context, 'Contacto', false),
+              _navItem(
+                context,
+                'Newborn',
+                false,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    SmoothPageRoute(page: const CatalogPage()),
+                  );
+                },
+              ),
+              _navItem(context, 'Toys', false),
+              _navItem(context, 'About Us', false),
+              _navItem(
+                context,
+                'Contacto',
+                false,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    SmoothPageRoute(page: const ContactPage()),
+                  );
+                },
+              ),
             ],
           ],
         ),
@@ -1142,14 +1169,19 @@ class _StoreHomePageState extends State<StoreHomePage> {
           ),
         ),
         const SizedBox(height: 16),
-        _footerLink('Catálogo', () {
+        _footerLink('Shop', () {
           Navigator.push(context, SmoothPageRoute(page: const CatalogPage()));
         }),
-        _footerLink('Sobre Nosotros', null),
-        _footerLink('Contacto', () {
-          launchUrl(Uri.parse('https://wa.me/50200000000'));
+        _footerLink('About Us', null),
+        _footerLink('Help Center', () {
+          Navigator.push(
+            context,
+            SmoothPageRoute(page: const HelpCenterPage()),
+          );
         }),
-        _footerLink('Política de Privacidad', null),
+        _footerLink('Contacto', () {
+          Navigator.push(context, SmoothPageRoute(page: const ContactPage()));
+        }),
       ],
     );
   }

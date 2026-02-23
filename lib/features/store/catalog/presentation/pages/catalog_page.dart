@@ -4,6 +4,7 @@ import 'package:creacionesbaby/core/providers/cart_provider.dart';
 import 'package:creacionesbaby/core/providers/product_provider.dart';
 import 'package:creacionesbaby/features/store/cart/presentation/pages/mini_cart.dart';
 import 'package:creacionesbaby/features/store/catalog/presentation/pages/product_detail_page.dart';
+import 'package:creacionesbaby/features/store/home/presentation/pages/help_center_page.dart';
 import 'package:creacionesbaby/utils/page_transitions.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -142,10 +143,10 @@ class _CatalogPageState extends State<CatalogPage> {
       child: Row(
         children: [
           if (MediaQuery.of(context).size.width > 800) ...[
-            _headerNav('Recién Nacidos', true),
-            _headerNav('Conjuntos', false),
-            _headerNav('Pijamas', false),
-            _headerNav('Accesorios', false),
+            _headerNav('Newborn', true),
+            _headerNav('Bundles', false),
+            _headerNav('Pajamas', false),
+            _headerNav('Accessories', false),
             const Spacer(),
           ],
           Expanded(
@@ -436,7 +437,13 @@ class _CatalogPageState extends State<CatalogPage> {
           _quickItem(Icons.local_shipping_outlined, 'Envío Gratis'),
           _quickItem(Icons.eco_outlined, '100% Algodón'),
           _quickItem(Icons.verified_user_outlined, 'Pago Seguro'),
-          _quickItem(Icons.support_agent_outlined, 'Soporte 24/7'),
+          InkWell(
+            onTap: () => Navigator.push(
+              context,
+              SmoothPageRoute(page: const HelpCenterPage()),
+            ),
+            child: _quickItem(Icons.support_agent_outlined, 'Centro de Ayuda'),
+          ),
         ],
       ),
     );
