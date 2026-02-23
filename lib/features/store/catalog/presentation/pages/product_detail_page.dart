@@ -238,10 +238,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     final cat = widget.product.category?.toLowerCase() ?? '';
     if (cat.contains('niña')) {
       catColor = AppTheme.girlPink;
-    } else if (cat.contains('niño'))
+    } else if (cat.contains('niño')) {
       catColor = AppTheme.boyBlue;
-    else if (cat.contains('unisex'))
+    } else if (cat.contains('unisex')) {
       catColor = AppTheme.unisexYellow;
+    }
 
     // Use all product images from imageUrls
     final images = widget.product.imageUrls.isNotEmpty
@@ -307,7 +308,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 height: 500,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: catColor.withOpacity(0.15),
+                  color: catColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: ClipRRect(

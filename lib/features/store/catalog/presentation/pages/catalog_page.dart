@@ -357,9 +357,9 @@ class _CatalogPageState extends State<CatalogPage> {
         title,
         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
       ),
-      children: children,
       shape: const Border(),
       tilePadding: EdgeInsets.zero,
+      children: children,
     );
   }
 
@@ -469,7 +469,7 @@ class _CatalogPageState extends State<CatalogPage> {
   Widget _buildQuickInfoFooter(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 30),
-      color: AppTheme.backgroundSoft.withOpacity(0.3),
+      color: AppTheme.backgroundSoft.withValues(alpha: 0.3),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
@@ -559,8 +559,8 @@ class _ProductCardState extends State<_ProductCard> {
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: catColor.withOpacity(
-                      0.2,
+                    color: catColor.withValues(
+                      alpha: 0.2,
                     ), // Use category color as subtle bg
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -660,7 +660,7 @@ class _ProductCardState extends State<_ProductCard> {
                 child: Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryGreen.withOpacity(0.1),
+                    color: AppTheme.primaryGreen.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
@@ -743,7 +743,9 @@ class _SkeletonCardState extends State<_SkeletonCard>
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: AppTheme.backgroundSoft.withOpacity(_animation.value),
+                  color: AppTheme.backgroundSoft.withValues(
+                    alpha: _animation.value,
+                  ),
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),
@@ -752,13 +754,17 @@ class _SkeletonCardState extends State<_SkeletonCard>
             Container(
               height: 12,
               width: double.infinity,
-              color: AppTheme.backgroundSoft.withOpacity(_animation.value),
+              color: AppTheme.backgroundSoft.withValues(
+                alpha: _animation.value,
+              ),
             ),
             const SizedBox(height: 8),
             Container(
               height: 12,
               width: 100,
-              color: AppTheme.backgroundSoft.withOpacity(_animation.value),
+              color: AppTheme.backgroundSoft.withValues(
+                alpha: _animation.value,
+              ),
             ),
           ],
         ),

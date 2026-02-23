@@ -73,7 +73,7 @@ class CartPage extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      color: AppTheme.backgroundSoft.withOpacity(0.5),
+      color: AppTheme.backgroundSoft.withValues(alpha: 0.5),
       child: Row(
         children: [
           Text(
@@ -113,7 +113,7 @@ class CartPage extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: AppTheme.pastelGreen.withOpacity(0.3),
+            color: AppTheme.pastelGreen.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
@@ -178,7 +178,7 @@ class CartPage extends StatelessWidget {
         border: Border.all(color: Colors.grey[100]!),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -389,7 +389,7 @@ class CartPage extends StatelessWidget {
   Widget _buildUpsellSection(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 24),
-      color: AppTheme.backgroundSoft.withOpacity(0.3),
+      color: AppTheme.backgroundSoft.withValues(alpha: 0.3),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -478,12 +478,13 @@ class _CartItemTile extends StatelessWidget {
     final cart = context.read<CartProvider>();
     Color catColor = AppTheme.backgroundSoft;
     final cat = item.product.category?.toLowerCase() ?? '';
-    if (cat.contains('niña'))
+    if (cat.contains('niña')) {
       catColor = AppTheme.girlPink;
-    else if (cat.contains('niño'))
+    } else if (cat.contains('niño')) {
       catColor = AppTheme.boyBlue;
-    else if (cat.contains('unisex'))
+    } else if (cat.contains('unisex')) {
       catColor = AppTheme.unisexYellow;
+    }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
@@ -499,7 +500,7 @@ class _CartItemTile extends StatelessWidget {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: catColor.withOpacity(0.2),
+              color: catColor.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(16),
             ),
             padding: const EdgeInsets.all(12),

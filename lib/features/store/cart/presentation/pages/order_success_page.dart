@@ -164,7 +164,7 @@ class OrderSuccessPage extends StatelessWidget {
                                 Icons.email_outlined,
                                 color: AppTheme.primaryGreen,
                               ),
-                              const SizedBox(width: 16),
+                              SizedBox(width: 16),
                               Expanded(
                                 child: Text(
                                   'Confirmación enviada\nHemos enviado un correo de confirmación con todos los detalles de tu compra a tu email registrado.',
@@ -327,7 +327,7 @@ class OrderSuccessPage extends StatelessWidget {
   }
 
   Widget _relatedCard(String name, String price, String imageUrl) {
-    return Container(
+    return SizedBox(
       width: 280,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
