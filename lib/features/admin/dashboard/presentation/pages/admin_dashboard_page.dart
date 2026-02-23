@@ -39,7 +39,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           NavigationDestination(
             selectedIcon: Icon(Icons.dashboard),
             icon: Icon(Icons.dashboard_outlined),
-            label: 'Dashboard',
+            label: 'Inicio',
           ),
           NavigationDestination(
             selectedIcon: Icon(Icons.inventory_2),
@@ -64,7 +64,7 @@ class DashboardOverview extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard'),
+        title: const Text('Panel de Control'),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),

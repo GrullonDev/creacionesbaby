@@ -24,6 +24,8 @@ class AddEditProductPage extends StatelessWidget {
             imageUrls: product!['imageUrls'] != null
                 ? List<String>.from(product!['imageUrls'])
                 : [],
+            category: product!['category'],
+            isActive: product!['isActive'] ?? true,
             isLocal: false,
           )
         : null;
@@ -143,6 +145,16 @@ class _ProductFormState extends State<ProductForm> {
   late TextEditingController _stockController;
 
   bool _isActive = true;
+  String? _selectedCategory;
+
+  final List<String> _categories = [
+    'Recién Nacido',
+    'Conjuntos',
+    'Pijamas',
+    'Accesorios',
+    'Juguetes',
+  ];
+
   final ImagePicker _picker = ImagePicker();
 
   // Multi-image state
@@ -165,6 +177,25 @@ class _ProductFormState extends State<ProductForm> {
       text: p != null ? p.stock.toString() : '',
     );
     _isActive = (p?.stock ?? 0) > 0;
+
+    // Map existing English categories to Spanish to avoid Dropdown error
+    final categoryMap = {
+      'Newborn': 'Recién Nacido',
+      'Bundles': 'Conjuntos',
+      'Pajamas': 'Pijamas',
+      'Accessories': 'Accesorios',
+      'Toys': 'Juguetes',
+    };
+
+    final existingCat = p?.category;
+    if (existingCat != null) {
+      _selectedCategory =
+          categoryMap[existingCat] ??
+          (_categories.contains(existingCat) ? existingCat : null);
+    } else {
+      _selectedCategory = null;
+    }
+
     _existingImageUrls = List.from(p?.imageUrls ?? []);
   }
 
@@ -267,6 +298,8 @@ class _ProductFormState extends State<ProductForm> {
         stock: int.tryParse(_stockController.text) ?? 0,
         imagePath: widget.initialProduct?.imagePath,
         imageUrls: _existingImageUrls,
+        category: _selectedCategory,
+        isActive: _isActive,
         isLocal: false,
       );
       widget.onSave(
@@ -287,6 +320,8 @@ class _ProductFormState extends State<ProductForm> {
           _buildImageSection(),
           const SizedBox(height: 24),
           _buildBasicInfo(),
+          const SizedBox(height: 24),
+          _buildCategorySelection(),
           const SizedBox(height: 24),
           _buildPricingAndStock(),
           const SizedBox(height: 16),
@@ -568,6 +603,40 @@ class _ProductFormState extends State<ProductForm> {
             prefixIcon: Icon(Icons.description_outlined),
           ),
           validator: (v) => v!.isEmpty ? 'Requerido' : null,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCategorySelection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Categoría',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 16),
+        DropdownButtonFormField<String>(
+          value: _selectedCategory,
+          decoration: const InputDecoration(
+            labelText: 'Selecciona una categoría',
+            border: OutlineInputBorder(),
+            prefixIcon: Icon(Icons.category_outlined),
+          ),
+          items: _categories.map((String category) {
+            return DropdownMenuItem<String>(
+              value: category,
+              child: Text(category),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            setState(() {
+              _selectedCategory = newValue;
+            });
+          },
+          validator: (v) =>
+              v == null ? 'Por favor selecciona una categoría' : null,
         ),
       ],
     );

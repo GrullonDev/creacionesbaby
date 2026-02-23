@@ -55,6 +55,21 @@ class ProductModel {
   factory ProductModel.fromJson(Map<String, dynamic> json) {
     final allImages = _parseImageUrl(json['image_url']);
 
+    final rawCategory = json['category'] as String?;
+    final String? normalizedCategory;
+    if (rawCategory != null) {
+      const categoryMap = {
+        'Newborn': 'Recién Nacido',
+        'Bundles': 'Conjuntos',
+        'Pajamas': 'Pijamas',
+        'Accessories': 'Accesorios',
+        'Toys': 'Juguetes',
+      };
+      normalizedCategory = categoryMap[rawCategory] ?? rawCategory;
+    } else {
+      normalizedCategory = null;
+    }
+
     return ProductModel(
       id: json['id']?.toString() ?? '',
       name: json['name'] ?? '',
@@ -63,7 +78,7 @@ class ProductModel {
       stock: json['stock'] as int? ?? 0,
       imagePath: allImages.isNotEmpty ? allImages.first : null,
       imageUrls: allImages,
-      category: json['category'] as String?,
+      category: normalizedCategory,
       isActive: json['is_active'] as bool? ?? true,
       isLocal: false,
     );
@@ -89,6 +104,8 @@ class ProductModel {
       'price': price,
       'stock': stock,
       'image_url': imageUrlValue,
+      'category': category,
+      'is_active': isActive,
     };
   }
 
