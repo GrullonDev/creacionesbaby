@@ -259,9 +259,15 @@ class _CatalogPageState extends State<CatalogPage> {
             ),
           ),
           const Spacer(),
-          Text(
-            'Mostrando $shown de $total productos',
-            style: const TextStyle(color: AppTheme.primaryMedium, fontSize: 12),
+          Flexible(
+            child: Text(
+              'Mostrando $shown de $total productos',
+              style: const TextStyle(
+                color: AppTheme.primaryMedium,
+                fontSize: 12,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           const SizedBox(width: 20),
           Container(
@@ -271,6 +277,7 @@ class _CatalogPageState extends State<CatalogPage> {
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text('Ordenar por: Destacados', style: TextStyle(fontSize: 12)),
                 Icon(Icons.keyboard_arrow_down, size: 16),
@@ -367,6 +374,7 @@ class _CatalogPageState extends State<CatalogPage> {
     return InkWell(
       onTap: () => _toggleCategory(label),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Checkbox(
             value: isChecked,
@@ -376,7 +384,7 @@ class _CatalogPageState extends State<CatalogPage> {
               borderRadius: BorderRadius.circular(4),
             ),
           ),
-          Text(label, style: const TextStyle(fontSize: 13)),
+          Flexible(child: Text(label, style: const TextStyle(fontSize: 13))),
         ],
       ),
     );
