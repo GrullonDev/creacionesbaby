@@ -41,12 +41,39 @@ class OrderProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> fetchOrdersByEmail(String email) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final response = await _supabase
+          .from('orders')
+          .select('*, order_items(*)')
+          .eq('customer_email', email)
+          .order('created_at', ascending: false);
+
+      _orders = (response as List<dynamic>)
+          .map((json) => OrderModel.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      _error = 'Error loading user orders: $e';
+      debugPrint(_error);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<bool> createOrder({
     required String customerEmail,
     required String customerName,
     required String customerPhone,
     required String shippingAddress,
     required double totalAmount,
+    double shippingAmount = 0.0,
+    double taxAmount = 0.0,
+    double discountAmount = 0.0,
     required List<CartItemModel> cartItems,
   }) async {
     _isLoading = true;
@@ -61,6 +88,9 @@ class OrderProvider extends ChangeNotifier {
         'customer_phone': customerPhone,
         'shipping_address': shippingAddress,
         'total_amount': totalAmount,
+        'shipping_amount': shippingAmount,
+        'tax_amount': taxAmount,
+        'discount_amount': discountAmount,
         'status': 'pendiente',
       };
 

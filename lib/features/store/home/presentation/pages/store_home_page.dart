@@ -1171,6 +1171,17 @@ class _StoreHomePageState extends State<StoreHomePage> {
                   '© 2026 CreacionesBaby. Todos los derechos reservados.',
                   style: TextStyle(color: Colors.white38, fontSize: 12),
                 ),
+                InkWell(
+                  onTap: () => Navigator.pushNamed(context, '/admin'),
+                  child: const Text(
+                    'Panel de Control',
+                    style: TextStyle(
+                      color: Colors.white24,
+                      fontSize: 10,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
                 const Text(
                   'Hecho con ❤️ en Guatemala',
                   style: TextStyle(color: Colors.white38, fontSize: 12),

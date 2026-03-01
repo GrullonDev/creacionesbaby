@@ -2,9 +2,12 @@ import 'package:creacionesbaby/core/providers/auth_provider.dart';
 import 'package:creacionesbaby/core/providers/order_provider.dart';
 import 'package:creacionesbaby/core/providers/product_provider.dart';
 import 'package:creacionesbaby/features/admin/dashboard/presentation/pages/banner_config_page.dart';
+import 'package:creacionesbaby/features/admin/dashboard/presentation/pages/category_list_page.dart';
+import 'package:creacionesbaby/features/admin/dashboard/presentation/pages/store_settings_page.dart';
 import 'package:creacionesbaby/features/admin/orders/presentation/pages/order_list_page.dart';
 import 'package:creacionesbaby/features/admin/products/presentation/pages/product_list_page.dart';
 import 'package:creacionesbaby/features/auth/presentation/pages/admin_login_page.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -22,37 +25,92 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     const DashboardOverview(), // Internal widget for now
     const ProductListPage(),
     const OrderListPage(),
+    const CategoryListPage(),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final bool isWide = MediaQuery.of(context).size.width > 900;
+
     return Scaffold(
-      body: _pages[_selectedIndex],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (int index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        destinations: const <NavigationDestination>[
-          NavigationDestination(
-            selectedIcon: Icon(Icons.dashboard),
-            icon: Icon(Icons.dashboard_outlined),
-            label: 'Inicio',
-          ),
-          NavigationDestination(
-            selectedIcon: Icon(Icons.inventory_2),
-            icon: Icon(Icons.inventory_2_outlined),
-            label: 'Productos',
-          ),
-          NavigationDestination(
-            selectedIcon: Icon(Icons.shopping_bag),
-            icon: Icon(Icons.shopping_bag_outlined),
-            label: 'Pedidos',
-          ),
+      body: Row(
+        children: [
+          if (isWide)
+            NavigationRail(
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: (int index) {
+                setState(() {
+                  _selectedIndex = index;
+                });
+              },
+              labelType: NavigationRailLabelType.all,
+              leading: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Icon(
+                  Icons.storefront_rounded,
+                  color: Theme.of(context).primaryColor,
+                  size: 32,
+                ),
+              ),
+              destinations: const [
+                NavigationRailDestination(
+                  icon: Icon(Icons.dashboard_outlined),
+                  selectedIcon: Icon(Icons.dashboard),
+                  label: Text('Inicio'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.inventory_2_outlined),
+                  selectedIcon: Icon(Icons.inventory_2),
+                  label: Text('Productos'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.shopping_bag_outlined),
+                  selectedIcon: Icon(Icons.shopping_bag),
+                  label: Text('Pedidos'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.category_outlined),
+                  selectedIcon: Icon(Icons.category),
+                  label: Text('Categorías'),
+                ),
+              ],
+            ),
+          if (isWide) const VerticalDivider(thickness: 1, width: 1),
+          Expanded(child: _pages[_selectedIndex]),
         ],
       ),
+      bottomNavigationBar: isWide
+          ? null
+          : NavigationBar(
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: (int index) {
+                setState(() {
+                  _selectedIndex = index;
+                });
+              },
+              destinations: const <NavigationDestination>[
+                NavigationDestination(
+                  selectedIcon: Icon(Icons.dashboard),
+                  icon: Icon(Icons.dashboard_outlined),
+                  label: 'Inicio',
+                ),
+                NavigationDestination(
+                  selectedIcon: Icon(Icons.inventory_2),
+                  icon: Icon(Icons.inventory_2_outlined),
+                  label: 'Productos',
+                ),
+                NavigationDestination(
+                  selectedIcon: Icon(Icons.shopping_bag),
+                  icon: Icon(Icons.shopping_bag_outlined),
+                  label: 'Pedidos',
+                ),
+                NavigationDestination(
+                  selectedIcon: Icon(Icons.category),
+                  icon: Icon(Icons.category_outlined),
+                  label: 'Categorías',
+                ),
+              ],
+            ),
     );
   }
 }
@@ -68,7 +126,19 @@ class DashboardOverview extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
-            tooltip: 'Configurar Banner',
+            tooltip: 'Ajustes de la Tienda',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const StoreSettingsPage(),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.image_outlined),
+            tooltip: 'Configurar Banners',
             onPressed: () {
               Navigator.push(
                 context,
@@ -77,10 +147,6 @@ class DashboardOverview extends StatelessWidget {
                 ),
               );
             },
-          ),
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {},
           ),
           IconButton(
             icon: const Icon(Icons.logout_rounded),
@@ -226,6 +292,20 @@ class DashboardOverview extends StatelessWidget {
                   'Sistema funcionando correctamente',
                   'Estado: Conectado',
                   Colors.green,
+                ),
+                const SizedBox(height: 32),
+                Center(
+                  child: TextButton.icon(
+                    onPressed: () {
+                      FirebaseCrashlytics.instance.log('Test Crash clicked');
+                      throw Exception('Test Crash for Firebase Setup');
+                    },
+                    icon: const Icon(Icons.bug_report, color: Colors.red),
+                    label: const Text(
+                      'SIMULAR FALLO (TEST CRASH)',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
                 ),
               ],
             ),

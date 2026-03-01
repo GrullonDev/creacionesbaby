@@ -7,6 +7,8 @@ import 'package:creacionesbaby/features/store/cart/presentation/pages/mini_cart.
 import 'package:creacionesbaby/features/store/catalog/presentation/pages/product_detail_page.dart';
 import 'package:creacionesbaby/features/store/home/presentation/pages/help_center_page.dart';
 import 'package:creacionesbaby/utils/page_transitions.dart';
+import 'package:creacionesbaby/core/providers/wishlist_provider.dart';
+import 'package:creacionesbaby/core/providers/category_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -28,6 +30,7 @@ class _CatalogPageState extends State<CatalogPage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProductProvider>().loadProducts();
+      context.read<CategoryProvider>().loadCategories();
     });
   }
 
@@ -130,30 +133,21 @@ class _CatalogPageState extends State<CatalogPage> {
       child: Row(
         children: [
           if (MediaQuery.of(context).size.width > 800) ...[
-            _headerNav(
-              'Recién Nacido',
-              _selectedCategories.contains('Recién Nacido'),
-              onTap: () => _toggleCategory('Recién Nacido'),
-            ),
-            _headerNav(
-              'Conjuntos',
-              _selectedCategories.contains('Conjuntos'),
-              onTap: () => _toggleCategory('Conjuntos'),
-            ),
-            _headerNav(
-              'Pijamas',
-              _selectedCategories.contains('Pijamas'),
-              onTap: () => _toggleCategory('Pijamas'),
-            ),
-            _headerNav(
-              'Accesorios',
-              _selectedCategories.contains('Accesorios'),
-              onTap: () => _toggleCategory('Accesorios'),
-            ),
-            _headerNav(
-              'Juguetes',
-              _selectedCategories.contains('Juguetes'),
-              onTap: () => _toggleCategory('Juguetes'),
+            Consumer<CategoryProvider>(
+              builder: (context, catProvider, _) {
+                final displayCats = catProvider.categories.take(5).toList();
+                return Row(
+                  children: displayCats
+                      .map(
+                        (cat) => _headerNav(
+                          cat.name,
+                          _selectedCategories.contains(cat.name),
+                          onTap: () => _toggleCategory(cat.name),
+                        ),
+                      )
+                      .toList(),
+                );
+              },
             ),
             const Spacer(),
           ],
@@ -296,25 +290,19 @@ class _CatalogPageState extends State<CatalogPage> {
       child: SingleChildScrollView(
         child: Column(
           children: [
-            _sidebarSection('Categoría', [
-              _checkOption(
-                'Recién Nacido',
-                _selectedCategories.contains('Recién Nacido'),
+            Consumer<CategoryProvider>(
+              builder: (context, catProvider, _) => _sidebarSection(
+                'Categoría',
+                catProvider.categories
+                    .map(
+                      (cat) => _checkOption(
+                        cat.name,
+                        _selectedCategories.contains(cat.name),
+                      ),
+                    )
+                    .toList(),
               ),
-              _checkOption(
-                'Conjuntos',
-                _selectedCategories.contains('Conjuntos'),
-              ),
-              _checkOption('Pijamas', _selectedCategories.contains('Pijamas')),
-              _checkOption(
-                'Accesorios',
-                _selectedCategories.contains('Accesorios'),
-              ),
-              _checkOption(
-                'Juguetes',
-                _selectedCategories.contains('Juguetes'),
-              ),
-            ]),
+            ),
             _sidebarSection('Edad', [
               const SizedBox(height: 8),
               Wrap(
@@ -595,17 +583,25 @@ class _ProductCardState extends State<_ProductCard> {
                 Positioned(
                   top: 10,
                   right: 10,
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.favorite_border,
-                      size: 16,
-                      color: AppTheme.primaryMedium,
-                    ),
+                  child: Consumer<WishlistProvider>(
+                    builder: (context, wishlist, _) {
+                      final isFav = wishlist.isFavorite(widget.product.id);
+                      return GestureDetector(
+                        onTap: () => wishlist.toggleFavorite(widget.product),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isFav ? Icons.favorite : Icons.favorite_border,
+                            size: 16,
+                            color: isFav ? Colors.red : AppTheme.primaryMedium,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
                 // Category indicator

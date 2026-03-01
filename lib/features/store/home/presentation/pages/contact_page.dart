@@ -1,5 +1,7 @@
 import 'package:creacionesbaby/config/app_theme.dart';
+import 'package:creacionesbaby/core/providers/contact_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ContactPage extends StatefulWidget {
@@ -13,6 +15,7 @@ class _ContactPageState extends State<ContactPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _messageController = TextEditingController();
   String _selectedSubject = 'Consulta General';
 
   @override
@@ -485,19 +488,73 @@ class _ContactPageState extends State<ContactPage> {
             _buildFormField(
               label: 'Mensaje',
               hint: '¿En qué podemos ayudarte?',
+              controller: _messageController,
               maxLines: 5,
             ),
             const SizedBox(height: 40),
-            SizedBox(
-              width: 200,
-              child: ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryGreen,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Enviar Mensaje'),
-              ),
+            Consumer<ContactProvider>(
+              builder: (context, contact, child) {
+                if (contact.success) {
+                  return Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryGreen.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      '¡Mensaje enviado con éxito! Te contactaremos pronto.',
+                      style: TextStyle(
+                        color: AppTheme.primaryGreen,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  );
+                }
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (contact.error != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: Text(
+                          contact.error!,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    SizedBox(
+                      width: 200,
+                      child: ElevatedButton(
+                        onPressed: contact.isSubmitting
+                            ? null
+                            : () async {
+                                if (_formKey.currentState!.validate()) {
+                                  await contact.submitContactForm(
+                                    name: _nameController.text,
+                                    email: _emailController.text,
+                                    subject: _selectedSubject,
+                                    message: _messageController.text,
+                                  );
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryGreen,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: contact.isSubmitting
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text('Enviar Mensaje'),
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ],
         ),

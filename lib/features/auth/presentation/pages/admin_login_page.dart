@@ -1,6 +1,7 @@
 import 'package:creacionesbaby/core/providers/auth_provider.dart';
 import 'package:creacionesbaby/core/providers/order_provider.dart';
 import 'package:creacionesbaby/core/providers/product_provider.dart';
+import 'package:creacionesbaby/features/auth/presentation/pages/register_page.dart';
 import 'package:creacionesbaby/features/admin/dashboard/presentation/pages/admin_dashboard_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -263,6 +264,16 @@ class _LoginFormState extends State<_LoginForm> {
                         ),
                       ),
               ),
+            ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const RegisterPage()),
+                );
+              },
+              child: const Text('¿No tienes cuenta? Regístrate aquí'),
             ),
           ],
         ),

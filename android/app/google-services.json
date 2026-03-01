@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "399657046600",
-    "project_id": "portfolio-b302f",
-    "storage_bucket": "portfolio-b302f.firebasestorage.app"
+    "project_number": "907263499276",
+    "project_id": "creaciones-baby",
+    "storage_bucket": "creaciones-baby.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:399657046600:android:f6768dd5c342a1802dbe7d",
+        "mobilesdk_app_id": "1:907263499276:android:ea9c34485b65249232e229",
         "android_client_info": {
           "package_name": "com.creacionesbaby.creacionesbaby"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBcuh76PTj_TbAnWIzen6MODBof0CBOONI"
+          "current_key": "AIzaSyDpTQkteEzHO0EcO6uXtMQQIo0YQQVqJuA"
         }
       ],
       "services": {

@@ -14,16 +14,19 @@ class ProductProvider with ChangeNotifier {
   String? get error => _error;
 
   // Load all products
-  Future<void> loadProducts() async {
+  Future<void> loadProducts({String? query}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      final response = await _supabase
-          .from('products')
-          .select()
-          .order('created_at');
+      var request = _supabase.from('products').select();
+
+      if (query != null && query.isNotEmpty) {
+        request = request.ilike('name', '%$query%');
+      }
+
+      final response = await request.order('created_at');
 
       _products = (response as List)
           .map((json) => ProductModel.fromJson(json))

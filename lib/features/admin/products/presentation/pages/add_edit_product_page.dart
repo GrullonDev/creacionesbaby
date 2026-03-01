@@ -1,5 +1,6 @@
 import 'package:creacionesbaby/core/models/product_model.dart';
 import 'package:creacionesbaby/core/providers/product_provider.dart';
+import 'package:creacionesbaby/core/providers/category_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -147,14 +148,6 @@ class _ProductFormState extends State<ProductForm> {
   bool _isActive = true;
   String? _selectedCategory;
 
-  final List<String> _categories = [
-    'Recién Nacido',
-    'Conjuntos',
-    'Pijamas',
-    'Accesorios',
-    'Juguetes',
-  ];
-
   final ImagePicker _picker = ImagePicker();
 
   // Multi-image state
@@ -178,23 +171,12 @@ class _ProductFormState extends State<ProductForm> {
     );
     _isActive = (p?.stock ?? 0) > 0;
 
-    // Map existing English categories to Spanish to avoid Dropdown error
-    final categoryMap = {
-      'Newborn': 'Recién Nacido',
-      'Bundles': 'Conjuntos',
-      'Pajamas': 'Pijamas',
-      'Accessories': 'Accesorios',
-      'Toys': 'Juguetes',
-    };
+    // Load categories
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CategoryProvider>().loadCategories();
+    });
 
-    final existingCat = p?.category;
-    if (existingCat != null) {
-      _selectedCategory =
-          categoryMap[existingCat] ??
-          (_categories.contains(existingCat) ? existingCat : null);
-    } else {
-      _selectedCategory = null;
-    }
+    _selectedCategory = p?.category;
 
     _existingImageUrls = List.from(p?.imageUrls ?? []);
   }
@@ -617,26 +599,40 @@ class _ProductFormState extends State<ProductForm> {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
-        DropdownButtonFormField<String>(
-          initialValue: _selectedCategory,
-          decoration: const InputDecoration(
-            labelText: 'Selecciona una categoría',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.category_outlined),
-          ),
-          items: _categories.map((String category) {
-            return DropdownMenuItem<String>(
-              value: category,
-              child: Text(category),
+        Consumer<CategoryProvider>(
+          builder: (context, catProvider, _) {
+            final categories = catProvider.categories
+                .map((c) => c.name)
+                .toList();
+
+            // Ensure selected category is in the list
+            if (_selectedCategory != null &&
+                !categories.contains(_selectedCategory)) {
+              categories.add(_selectedCategory!);
+            }
+
+            return DropdownButtonFormField<String>(
+              value: _selectedCategory,
+              decoration: const InputDecoration(
+                labelText: 'Selecciona una categoría',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.category_outlined),
+              ),
+              items: categories.map((String category) {
+                return DropdownMenuItem<String>(
+                  value: category,
+                  child: Text(category),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                setState(() {
+                  _selectedCategory = newValue;
+                });
+              },
+              validator: (v) =>
+                  v == null ? 'Por favor selecciona una categoría' : null,
             );
-          }).toList(),
-          onChanged: (String? newValue) {
-            setState(() {
-              _selectedCategory = newValue;
-            });
           },
-          validator: (v) =>
-              v == null ? 'Por favor selecciona una categoría' : null,
         ),
       ],
     );

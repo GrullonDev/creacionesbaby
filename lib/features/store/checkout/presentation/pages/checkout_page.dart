@@ -3,6 +3,7 @@ import 'package:creacionesbaby/core/providers/cart_provider.dart';
 import 'package:creacionesbaby/core/providers/order_provider.dart';
 import 'package:creacionesbaby/features/store/cart/presentation/pages/order_success_page.dart';
 import 'package:creacionesbaby/utils/page_transitions.dart';
+import 'package:creacionesbaby/core/providers/contact_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -22,6 +23,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   final _phoneCtrl = TextEditingController();
   final _cityCtrl = TextEditingController();
   final _zipCtrl = TextEditingController();
+  final _couponCtrl = TextEditingController();
 
   String _selectedShippingMethod = 'standard';
   String _selectedPaymentMethod = 'bank';
@@ -31,11 +33,14 @@ class _CheckoutPageState extends State<CheckoutPage> {
   void dispose() {
     _emailCtrl.dispose();
     _nameCtrl.dispose();
+    _emailCtrl.dispose();
+    _nameCtrl.dispose();
     _lastNameCtrl.dispose();
     _addressCtrl.dispose();
     _phoneCtrl.dispose();
     _cityCtrl.dispose();
     _zipCtrl.dispose();
+    _couponCtrl.dispose();
     super.dispose();
   }
 
@@ -53,19 +58,30 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
       final customerName = '${_nameCtrl.text} ${_lastNameCtrl.text}'.trim();
 
+      final shippingCost = _selectedShippingMethod == 'standard' ? 25.0 : 50.0;
+      final discount = cartProvider.discountAmount;
+      final taxes = cartProvider.totalAfterDiscount * 0.12;
+      final finalTotal = cartProvider.totalAfterDiscount + shippingCost + taxes;
+
       final success = await orderProvider.createOrder(
         customerEmail: _emailCtrl.text,
         customerName: customerName,
         customerPhone: _phoneCtrl.text,
         shippingAddress:
             '${_addressCtrl.text}, ${_cityCtrl.text}, ${_zipCtrl.text}',
-        totalAmount:
-            cartProvider.totalAmount +
-            (_selectedShippingMethod == 'standard' ? 25.0 : 50.0),
+        totalAmount: finalTotal,
+        shippingAmount: shippingCost,
+        taxAmount: taxes,
+        discountAmount: discount,
         cartItems: cartProvider.items,
       );
 
       if (success) {
+        // Subscribe to newsletter if requested
+        if (_sendNewsletters) {
+          context.read<ContactProvider>().subscribeNewsletter(_emailCtrl.text);
+        }
+
         final items = List.from(cartProvider.items);
         final orderIdValue = orderProvider.lastCreatedOrderId;
         cartProvider.clearCart();
@@ -329,24 +345,40 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     ),
                   ),
                 ),
-                /* _buildPaymentOption(
-                  id: 'paypal',
-                  title: 'PayPal',
-                  icon: Icons.payment_outlined,
-                  isExpanded: _selectedPaymentMethod == 'paypal',
-                  onTap: () =>
-                      setState(() => _selectedPaymentMethod = 'paypal'),
+                _buildPaymentOption(
+                  id: 'card',
+                  title: 'Tarjeta de Crédito/Débito',
+                  icon: Icons.credit_card_outlined,
+                  isExpanded: _selectedPaymentMethod == 'card',
+                  onTap: () {
+                    setState(() => _selectedPaymentMethod = 'card');
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Pago con Tarjeta'),
+                        content: const Text(
+                          'Esta opción estará disponible próximamente. Por ahora, selecciona otro método de pago.',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Entendido'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                   child: const Padding(
                     padding: EdgeInsets.symmetric(vertical: 8),
                     child: Text(
-                      'Paga a través de PayPal; puedes pagar con tu tarjeta de crédito si no tienes una cuenta de PayPal.',
+                      'Paga de forma segura con tu tarjeta Visa o Mastercard. (Próximamente)',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppTheme.primaryMedium,
                       ),
                     ),
                   ),
-                ), */
+                ),
                 _buildPaymentOption(
                   id: 'cash',
                   title: 'Pago contra entrega',
@@ -602,9 +634,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
 
   Widget _buildRightPanel(CartProvider cart) {
-    const double shippingPrice = 25.0;
-    const double taxes = 7.85; // Example
-    final total = cart.totalAmount + shippingPrice + taxes;
+    final double shippingPrice = _selectedShippingMethod == 'standard'
+        ? 25.0
+        : 50.0;
+    final double taxes = cart.totalAfterDiscount * 0.12; // IVA 12% Guatemala
+    final total = cart.totalAfterDiscount + shippingPrice + taxes;
 
     return Column(
       children: [
@@ -685,12 +719,18 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 'Subtotal',
                 'Q${cart.totalAmount.toStringAsFixed(2)}',
               ),
+              if (cart.appliedCoupon != null)
+                _summaryRow(
+                  'Descuento (${cart.appliedCoupon!.code})',
+                  '-Q${cart.discountAmount.toStringAsFixed(2)}',
+                  isDiscount: true,
+                ),
               _summaryRow(
                 'Gastos de Envío',
                 'Q${shippingPrice.toStringAsFixed(2)}',
               ),
               _summaryRow(
-                'Impuestos (IVA 21%)',
+                'Impuestos (IVA 12%)',
                 'Q${taxes.toStringAsFixed(2)}',
               ),
               const SizedBox(height: 24),
@@ -775,22 +815,62 @@ class _CheckoutPageState extends State<CheckoutPage> {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Código de descuento',
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _couponCtrl,
+                      decoration: InputDecoration(
+                        hintText: 'Código de descuento',
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                        ),
+                        errorText: cart.couponError,
+                      ),
                     ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  ),
+                  const SizedBox(width: 12),
+                  if (cart.appliedCoupon == null)
+                    TextButton(
+                      onPressed: cart.isValidatingCoupon
+                          ? null
+                          : () => cart.validateAndApplyCoupon(_couponCtrl.text),
+                      child: cart.isValidatingCoupon
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Aplicar'),
+                    )
+                  else
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.red),
+                      onPressed: () {
+                        cart.removeCoupon();
+                        _couponCtrl.clear();
+                      },
+                    ),
+                ],
+              ),
+              if (cart.appliedCoupon != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    'Cupón aplicado con éxito',
+                    style: TextStyle(
+                      color: AppTheme.primaryGreen,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              TextButton(onPressed: () {}, child: const Text('Aplicar')),
             ],
           ),
         ),
@@ -798,14 +878,25 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 
-  Widget _summaryRow(String label, String value) {
+  Widget _summaryRow(String label, String value, {bool isDiscount = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: Colors.grey)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(
+            label,
+            style: TextStyle(
+              color: isDiscount ? AppTheme.primaryGreen : Colors.grey,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: isDiscount ? AppTheme.primaryGreen : AppTheme.primaryDark,
+            ),
+          ),
         ],
       ),
     );

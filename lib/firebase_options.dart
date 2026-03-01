@@ -47,29 +47,30 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyA6rQWzfJFxM-nGEDW_x3Z80YGPQO_P6ik',
-    appId: '1:399657046600:web:f0a9bf64cc3b9a3d2dbe7d',
-    messagingSenderId: '399657046600',
-    projectId: 'portfolio-b302f',
-    authDomain: 'portfolio-b302f.firebaseapp.com',
-    storageBucket: 'portfolio-b302f.firebasestorage.app',
-    measurementId: 'G-6C67K8XC1V',
+    apiKey: 'AIzaSyBzlBKSJPLwspacE3T1wxHGI4Jt5QsMHWI',
+    appId: '1:907263499276:web:67ce2707fdffba2232e229',
+    messagingSenderId: '907263499276',
+    projectId: 'creaciones-baby',
+    authDomain: 'creaciones-baby.firebaseapp.com',
+    storageBucket: 'creaciones-baby.firebasestorage.app',
+    measurementId: 'G-8T4L9JWM1N',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBcuh76PTj_TbAnWIzen6MODBof0CBOONI',
-    appId: '1:399657046600:android:f6768dd5c342a1802dbe7d',
-    messagingSenderId: '399657046600',
-    projectId: 'portfolio-b302f',
-    storageBucket: 'portfolio-b302f.firebasestorage.app',
+    apiKey: 'AIzaSyDpTQkteEzHO0EcO6uXtMQQIo0YQQVqJuA',
+    appId: '1:907263499276:android:ea9c34485b65249232e229',
+    messagingSenderId: '907263499276',
+    projectId: 'creaciones-baby',
+    storageBucket: 'creaciones-baby.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBGuQa641ig3upUQKw_wImbU4XsZMFUXyE',
-    appId: '1:399657046600:ios:82d29c8d10655de32dbe7d',
-    messagingSenderId: '399657046600',
-    projectId: 'portfolio-b302f',
-    storageBucket: 'portfolio-b302f.firebasestorage.app',
+    apiKey: 'AIzaSyDM98JJF1ULWpKYbnfgEkvZ2PfyDJ4MpWU',
+    appId: '1:907263499276:ios:f3a681e249d8de1432e229',
+    messagingSenderId: '907263499276',
+    projectId: 'creaciones-baby',
+    storageBucket: 'creaciones-baby.firebasestorage.app',
     iosBundleId: 'com.creacionesbaby.creacionesbaby',
   );
+
 }

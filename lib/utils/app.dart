@@ -18,6 +18,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) =>
             kIsWeb ? const StoreHomePage() : const AdminLoginPage(),
+        '/admin': (context) => const AdminLoginPage(),
         '/debug': (context) => const DebugPage(),
       },
       initialRoute: '/',

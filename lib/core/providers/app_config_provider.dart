@@ -9,12 +9,26 @@ class AppConfigProvider extends ChangeNotifier {
   String _bannerText = 'Nueva Colección 2026';
   String? _bannerImageUrl; // Mantenido por compatibilidad
   List<String> _bannerImageUrls = [];
+  String _environment = 'dev'; // default
+
+  // Store Settings
+  String _storeName = 'CreacionesBaby';
+  String _whatsappNumber = '50200000000';
+  String _storeEmail = 'hola@creacionesbaby.com';
+  String _seoDescription =
+      'La mejor tienda para tu bebé, calidad y ternura en cada puntada.';
+
   bool _isLoading = false;
   String? _error;
 
   String get bannerText => _bannerText;
   String? get bannerImageUrl => _bannerImageUrl;
   List<String> get bannerImageUrls => _bannerImageUrls;
+  String get environment => _environment;
+  String get storeName => _storeName;
+  String get whatsappNumber => _whatsappNumber;
+  String get storeEmail => _storeEmail;
+  String get seoDescription => _seoDescription;
   bool get isLoading => _isLoading;
   String? get error => _error;
 
@@ -24,11 +38,20 @@ class AppConfigProvider extends ChangeNotifier {
       _isLoading = true;
       // notifyListeners(); // Avoid unnecessary rebuilds on start
 
-      // Fetch both text and image URLs
-      final response = await _supabase.from('app_config').select().inFilter(
-        'key',
-        ['home_banner_text', 'home_banner_image_url', 'home_banner_images'],
-      );
+      // Fetch text, image URLs and environment
+      final response = await _supabase
+          .from('app_config')
+          .select()
+          .inFilter('key', [
+            'home_banner_text',
+            'home_banner_image_url',
+            'home_banner_images',
+            'environment',
+            'store_name',
+            'whatsapp_number',
+            'store_email',
+            'seo_description',
+          ]);
 
       for (var item in response) {
         if (item['key'] == 'home_banner_text' && item['value'] != null) {
@@ -36,6 +59,8 @@ class AppConfigProvider extends ChangeNotifier {
         } else if (item['key'] == 'home_banner_image_url' &&
             item['value'] != null) {
           _bannerImageUrl = item['value'] as String;
+        } else if (item['key'] == 'environment' && item['value'] != null) {
+          _environment = item['value'] as String;
         } else if (item['key'] == 'home_banner_images' &&
             item['value'] != null) {
           try {
@@ -46,6 +71,14 @@ class AppConfigProvider extends ChangeNotifier {
           } catch (e) {
             debugPrint('Error parsing home_banner_images: $e');
           }
+        } else if (item['key'] == 'store_name' && item['value'] != null) {
+          _storeName = item['value'] as String;
+        } else if (item['key'] == 'whatsapp_number' && item['value'] != null) {
+          _whatsappNumber = item['value'] as String;
+        } else if (item['key'] == 'store_email' && item['value'] != null) {
+          _storeEmail = item['value'] as String;
+        } else if (item['key'] == 'seo_description' && item['value'] != null) {
+          _seoDescription = item['value'] as String;
         }
       }
     } catch (e) {
@@ -175,6 +208,40 @@ class AppConfigProvider extends ChangeNotifier {
       _error = null;
     } catch (e) {
       _error = 'Error eliminando imagen del banner: $e';
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateStoreSettings({
+    String? name,
+    String? whatsapp,
+    String? email,
+    String? seo,
+  }) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      final List<Map<String, dynamic>> batch = [];
+      if (name != null) batch.add({'key': 'store_name', 'value': name});
+      if (whatsapp != null)
+        batch.add({'key': 'whatsapp_number', 'value': whatsapp});
+      if (email != null) batch.add({'key': 'store_email', 'value': email});
+      if (seo != null) batch.add({'key': 'seo_description', 'value': seo});
+
+      if (batch.isNotEmpty) {
+        await _supabase.from('app_config').upsert(batch);
+        if (name != null) _storeName = name;
+        if (whatsapp != null) _whatsappNumber = whatsapp;
+        if (email != null) _storeEmail = email;
+        if (seo != null) _seoDescription = seo;
+      }
+      _error = null;
+    } catch (e) {
+      _error = 'Error actualizando configuración: $e';
       rethrow;
     } finally {
       _isLoading = false;

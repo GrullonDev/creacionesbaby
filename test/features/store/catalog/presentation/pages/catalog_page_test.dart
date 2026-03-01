@@ -27,7 +27,7 @@ class FakeProductProvider extends ChangeNotifier implements ProductProvider {
   String? get error => null;
 
   @override
-  Future<void> loadProducts() async {}
+  Future<void> loadProducts({String? query}) async {}
 
   @override
   Future<void> addProduct(

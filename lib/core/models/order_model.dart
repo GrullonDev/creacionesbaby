@@ -53,6 +53,9 @@ class OrderModel {
   final String customerPhone;
   final String shippingAddress;
   final double totalAmount;
+  final double shippingAmount;
+  final double taxAmount;
+  final double discountAmount;
   final String status;
   final DateTime? createdAt;
   final List<OrderItemModel> items;
@@ -64,6 +67,9 @@ class OrderModel {
     required this.customerPhone,
     required this.shippingAddress,
     required this.totalAmount,
+    this.shippingAmount = 0.0,
+    this.taxAmount = 0.0,
+    this.discountAmount = 0.0,
     this.status = 'pendiente',
     this.createdAt,
     this.items = const [],
@@ -87,6 +93,9 @@ class OrderModel {
       customerPhone: json['customer_phone'] ?? '',
       shippingAddress: json['shipping_address'] ?? '',
       totalAmount: (json['total_amount'] as num).toDouble(),
+      shippingAmount: (json['shipping_amount'] as num?)?.toDouble() ?? 0.0,
+      taxAmount: (json['tax_amount'] as num?)?.toDouble() ?? 0.0,
+      discountAmount: (json['discount_amount'] as num?)?.toDouble() ?? 0.0,
       status: json['status'] ?? 'pendiente',
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
@@ -100,9 +109,11 @@ class OrderModel {
       if (id != null) 'id': id,
       'customer_email': customerEmail,
       'customer_name': customerName,
-      'customer_phone': customerPhone,
       'shipping_address': shippingAddress,
       'total_amount': totalAmount,
+      'shipping_amount': shippingAmount,
+      'tax_amount': taxAmount,
+      'discount_amount': discountAmount,
       'status': status,
     };
   }
@@ -114,6 +125,9 @@ class OrderModel {
     String? customerPhone,
     String? shippingAddress,
     double? totalAmount,
+    double? shippingAmount,
+    double? taxAmount,
+    double? discountAmount,
     String? status,
     DateTime? createdAt,
     List<OrderItemModel>? items,
@@ -125,6 +139,9 @@ class OrderModel {
       customerPhone: customerPhone ?? this.customerPhone,
       shippingAddress: shippingAddress ?? this.shippingAddress,
       totalAmount: totalAmount ?? this.totalAmount,
+      shippingAmount: shippingAmount ?? this.shippingAmount,
+      taxAmount: taxAmount ?? this.taxAmount,
+      discountAmount: discountAmount ?? this.discountAmount,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       items: items ?? this.items,

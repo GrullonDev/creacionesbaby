@@ -1,12 +1,20 @@
+import 'package:creacionesbaby/core/models/coupon_model.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:creacionesbaby/core/models/product_model.dart';
 import 'package:creacionesbaby/core/models/cart_item_model.dart';
 
 class CartProvider with ChangeNotifier {
   final List<CartItemModel> _items = [];
+  CouponModel? _appliedCoupon;
+  bool _isValidatingCoupon = false;
+  String? _couponError;
 
   // Getters
   List<CartItemModel> get items => _items;
+  CouponModel? get appliedCoupon => _appliedCoupon;
+  bool get isValidatingCoupon => _isValidatingCoupon;
+  String? get couponError => _couponError;
 
   // Total quantity of items in cart
   int get itemCount {
@@ -19,6 +27,15 @@ class CartProvider with ChangeNotifier {
       0.0,
       (sum, item) => sum + item.product.price * item.quantity,
     );
+  }
+
+  double get discountAmount {
+    if (_appliedCoupon == null) return 0.0;
+    return _appliedCoupon!.calculateDiscount(totalAmount);
+  }
+
+  double get totalAfterDiscount {
+    return totalAmount - discountAmount;
   }
 
   // Add Item
@@ -95,6 +112,54 @@ class CartProvider with ChangeNotifier {
   // Clear Cart
   void clearCart() {
     _items.clear();
+    _appliedCoupon = null;
+    notifyListeners();
+  }
+
+  // Coupon Logic
+  Future<bool> validateAndApplyCoupon(String code) async {
+    _isValidatingCoupon = true;
+    _couponError = null;
+    notifyListeners();
+
+    try {
+      final response = await Supabase.instance.client
+          .from('coupons')
+          .select()
+          .eq('code', code.toUpperCase())
+          .maybeSingle();
+
+      if (response == null) {
+        _couponError = 'Cupón no válido';
+        _appliedCoupon = null;
+        return false;
+      }
+
+      final coupon = CouponModel.fromJson(response);
+
+      if (!coupon.isValid) {
+        _couponError = 'El cupón ha expirado o no está activo';
+        _appliedCoupon = null;
+        return false;
+      }
+
+      _appliedCoupon = coupon;
+      _couponError = null;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _couponError = 'Error validando cupón: $e';
+      debugPrint(_couponError);
+      return false;
+    } finally {
+      _isValidatingCoupon = false;
+      notifyListeners();
+    }
+  }
+
+  void removeCoupon() {
+    _appliedCoupon = null;
+    _couponError = null;
     notifyListeners();
   }
 }

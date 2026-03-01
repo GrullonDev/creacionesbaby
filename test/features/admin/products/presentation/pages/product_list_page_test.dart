@@ -35,7 +35,7 @@ class FakeAdminProductProvider extends ChangeNotifier
   String? get error => null;
 
   @override
-  Future<void> loadProducts() async {
+  Future<void> loadProducts({String? query}) async {
     _isLoading = true;
     notifyListeners();
     await Future.delayed(const Duration(milliseconds: 50));
@@ -70,7 +70,7 @@ class EmptyFakeAdminProductProvider extends FakeAdminProductProvider {
   List<ProductModel> get products => [];
 
   @override
-  Future<void> loadProducts() async {
+  Future<void> loadProducts({String? query}) async {
     _isLoading = true;
     notifyListeners();
     // No delay, instant completion
