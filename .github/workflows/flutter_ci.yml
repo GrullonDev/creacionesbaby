@@ -36,6 +36,7 @@ jobs:
 
       - name: Deploy Web to Hostinger (FTP)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        # Using Hostinger IP directly in secrets to avoid DNS resolution issues.
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.HOSTINGER_FTP_SERVER }}
