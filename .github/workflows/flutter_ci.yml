@@ -33,11 +33,29 @@ jobs:
         
       - name: Build Web
         run: flutter build web --release
-        
-      - name: Deploy to Firebase Hosting
-        uses: FirebaseExtended/action-hosting-deploy@v0
+
+      - name: Deploy Web to Hostinger (FTP)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PORTFOLIO_B302F }}'
-          channelId: live
-          projectId: portfolio-b302f
+          server: ${{ secrets.HOSTINGER_FTP_SERVER }}
+          username: ${{ secrets.HOSTINGER_FTP_USER }}
+          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
+          local-dir: build/web/
+          server-dir: /public_html/
+
+      - name: Build Android APK
+        run: flutter build apk --release
+
+      - name: Upload APK to Firebase App Distribution
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: w9jds/firebase-action@master
+        with:
+          args: appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk --app ${{ secrets.FIREBASE_APP_ID_ANDROID }}
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      # iOS build requires a macOS runner and certificates/provisioning profiles.
+      # This step is prepared but will likely need manual setup for signing.
+      # - name: Build iOS IPA
+      #   run: flutter build ipa --release --no-codesign

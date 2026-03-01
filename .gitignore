@@ -130,3 +130,8 @@ app.*.symbols
 # Data important
 PROJECT_ASSESSMENT.md
 CONTRIBUTING.md
+
+# Web/Environment
+.env*
+build/web/
+node_modules/
