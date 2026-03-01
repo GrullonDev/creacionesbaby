@@ -164,7 +164,7 @@ class _CatalogPageState extends State<CatalogPage> {
                 onChanged: (v) =>
                     setState(() => _searchQuery = v.toLowerCase()),
                 decoration: const InputDecoration(
-                  hintText: 'Buscar productos...',
+                  hintText: 'Buscar productos por nombre...',
                   prefixIcon: Icon(Icons.search, size: 20),
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
