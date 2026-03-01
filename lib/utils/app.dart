@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Creaciones Baby',
+      title: 'Creaciones Baby Store',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       // Routes mapping
