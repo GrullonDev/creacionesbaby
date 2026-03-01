@@ -135,4 +135,3 @@ CONTRIBUTING.md
 .env*
 build/web/
 node_modules/
-lib/firebase_options.dart
