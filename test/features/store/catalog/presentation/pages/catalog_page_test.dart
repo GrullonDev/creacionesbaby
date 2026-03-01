@@ -157,7 +157,7 @@ void main() {
       final catalogSearch = find.byWidgetPredicate(
         (widget) =>
             widget is TextField &&
-            widget.decoration?.hintText == 'Buscar productos...',
+            widget.decoration?.hintText == 'Buscar productos por nombre...',
       );
       expect(catalogSearch, findsOneWidget);
 
