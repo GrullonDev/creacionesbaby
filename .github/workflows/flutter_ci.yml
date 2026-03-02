@@ -34,17 +34,14 @@ jobs:
       - name: Build Web
         run: flutter build web --release
 
-      - name: Deploy Web to Hostinger (FTP)
+      - name: Deploy Web to Firebase Hosting
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        # Using Hostinger IP directly in secrets to avoid DNS resolution issues.
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          server: ${{ secrets.HOSTINGER_FTP_SERVER }}
-          username: ${{ secrets.HOSTINGER_FTP_USER }}
-          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
-          port: 21
-          local-dir: build/web/
-          server-dir: public_html/
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_CREACIONES_BABY }}'
+          channelId: live
+          projectId: creaciones-baby
 
       - name: Build Android APK
         run: flutter build apk --release
