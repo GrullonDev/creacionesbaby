@@ -32,7 +32,7 @@ jobs:
         run: flutter test
         
       - name: Build Web
-        run: flutter build web --release
+        run: flutter build web --release --base-href /
 
       - name: Deploy Web to Firebase Hosting
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
